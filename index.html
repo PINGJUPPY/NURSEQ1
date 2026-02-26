@@ -11,14 +11,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --primary: #ff8fa3;    /* ชมพูซากุระเข้มขึ้นนิดนึงให้ตัวหนังสืออ่านง่าย */
+            --primary: #ff8fa3;    /* ชมพูซากุระเข้ม */
             --secondary: #ffb3c6;  /* ชมพูอ่อน */
             --accent: #ffccd5;     /* ชมพูพาสเทล */
             --bg-gradient-1: #fff0f3;
             --bg-gradient-2: #ffe5ec;
             --dark-glass: rgba(255, 255, 255, 0.6);
             --light-glass: rgba(255, 255, 255, 0.85);
-            --text-main: #5c4b51;  /* สีน้ำตาลอมเทา ให้อ่านง่ายบนพื้นชมพู */
+            --text-main: #5c4b51;  /* สีน้ำตาลอมเทา */
         }
 
         body {
@@ -36,7 +36,7 @@
         #sakura-container {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* สำคัญมาก! ทำให้คลิกทะลุได้ */
+            pointer-events: none; /* คลิกทะลุได้ */
             z-index: 9999;
             overflow: hidden;
         }
@@ -81,7 +81,8 @@
         .header-content { position: relative; z-index: 1; }
         
         .header-card img {
-            width: 90px;
+            /* ปรับขนาดโลโก้ใหม่ให้พอดี */
+            width: 180px; 
             margin-bottom: 15px;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
             animation: float 4s ease-in-out infinite;
@@ -161,7 +162,7 @@
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 143, 163, 0.5); }
         .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-        /* Podium - ปรับสีให้เข้ากับซากุระ */
+        /* Podium */
         .podium-container {
             display: flex; justify-content: center; align-items: flex-end;
             height: 280px; gap: 15px; margin-top: 30px; margin-bottom: 20px;
@@ -218,7 +219,7 @@
 <div class="main-container">
     <div class="header-card">
         <div class="header-content">
-            <img src="https://img5.pic.in.th/file/secure-sv1/logo_DTAM2RGB.png" alt="MOPH Logo">
+            <img src="https://img2.pic.in.th/--PNG-logoname.png" alt="Hospital Logo">
             <h2>แบบประเมินกิจกรรมวิชาชีพพยาบาล</h2>
             <p><i class="fas fa-hospital-user" style="color: var(--primary);"></i> กลุ่มงานการพยาบาล โรงพยาบาลสะเดา</p>
         </div>
@@ -333,38 +334,39 @@
 </div>
 
 <script>
+    // ตัวแปรสำหรับ Auto-refresh
+    let refreshInterval;
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby7vUdRdZlK2YYzjZ4UJGnKRUBTi8ewzkOswOf0f4PknpeCJB2aZM4bN4h93ggagzSk9A/exec";
 
-    // --- ฟังก์ชันสร้างหิมะซากุระ ---
+    // --- ฟังก์ชันสร้างหิมะซากุระ (ปรับขนาดเล็กลง) ---
     function createSakura() {
         const container = document.getElementById('sakura-container');
-        const petalCount = 25; // ไม่ให้เยอะไปจนรกจอ
+        const petalCount = 25;
         for (let i = 0; i < petalCount; i++) {
             let petal = document.createElement('div');
             petal.className = 'petal';
             
-            // สุ่มขนาด, ตำแหน่งแนวนอน, ระยะเวลาตก, และความดีเลย์
-            let size = Math.random() * 8 + 8; // 8px - 16px
+            // ปรับขนาดให้เล็กลง (5px - 10px)
+            let size = Math.random() * 5 + 5; 
             petal.style.width = size + 'px';
             petal.style.height = size + 'px';
             petal.style.left = Math.random() * 100 + 'vw';
-            petal.style.animationDuration = Math.random() * 5 + 5 + 's'; // 5s - 10s
+            petal.style.animationDuration = Math.random() * 5 + 5 + 's';
             petal.style.animationDelay = Math.random() * 5 + 's';
             
             container.appendChild(petal);
         }
     }
 
-    // ทำงานเมื่อโหลดหน้าเว็บ
     window.onload = function() {
         createSakura();
-        
         const listDiv = document.getElementById('strengths-list');
         for(let i=1; i<=10; i++) {
             listDiv.innerHTML += `<input type="text" id="q6_${i}" placeholder="${i}. ข้อดีของคุณคือ..." style="margin-bottom: 8px;">`;
         }
     }
 
+    // ฟังก์ชันสลับหน้า (พร้อม Auto-refresh)
     function switchTab(tabId) {
         document.getElementById('evaluation').classList.add('hidden');
         document.getElementById('summary').classList.add('hidden');
@@ -374,7 +376,14 @@
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
 
-        if(tabId === 'summary') fetchSummaryData();
+        // เคลียร์ Timer เก่าทิ้งก่อน
+        clearInterval(refreshInterval);
+
+        if(tabId === 'summary') {
+            fetchSummaryData(); // ดึงข้อมูลทันที 1 ครั้ง
+            // ตั้งเวลาดึงข้อมูลใหม่ทุกๆ 10 วินาที
+            refreshInterval = setInterval(fetchSummaryData, 10000);
+        }
     }
 
     function toggleMentorSection() {
@@ -456,6 +465,8 @@
         document.getElementById('tab-menu').classList.remove('hidden');
         document.getElementById('evaluation').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        // หยุด Auto-refresh เมื่อออกจากหน้าสรุป
+        clearInterval(refreshInterval);
     }
 
     async function fetchSummaryData() {
