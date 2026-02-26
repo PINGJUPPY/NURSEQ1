@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แบบประเมินกิจกรรมวิชาชีพพยาบาล - รพ.สะเดา</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
         
         :root {
             --primary: #4a90e2;
             --secondary: #50e3c2;
-            --glass: rgba(255, 255, 255, 0.85);
+            --dark-glass: rgba(15, 23, 42, 0.7);
+            --light-glass: rgba(255, 255, 255, 0.85);
         }
 
         body {
@@ -21,26 +24,76 @@
             margin: 0;
             padding: 20px;
             color: #333;
+            min-height: 100vh;
         }
 
-        .container {
+        .main-container {
             max-width: 800px;
             margin: 0 auto;
-            background: var(--glass);
+        }
+
+        /* --- ปรับแต่ง Header ให้ดูล้ำและโดดเด่น --- */
+        .header-card {
+            background: var(--dark-glass);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* แสงแฟลร์ประดับแบคกราวด์ Header */
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(80,227,194,0.2) 0%, transparent 60%);
+            animation: pulse 6s infinite;
+            z-index: 0;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-card img {
+            width: 100px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.1);
+        }
+
+        .header-card p {
+            margin: 0;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: #e2e8f0;
+        }
+
+        /* --- ส่วนเนื้อหา --- */
+        .content-card {
+            background: var(--light-glass);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header img {
-            width: 80px;
-            margin-bottom: 10px;
         }
 
         /* Tabs */
@@ -52,7 +105,7 @@
         }
 
         .tab-btn {
-            padding: 10px 20px;
+            padding: 10px 25px;
             border: none;
             border-radius: 30px;
             background: #fff;
@@ -65,9 +118,10 @@
         }
 
         .tab-btn.active {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary), #3b82f6);
             color: white;
             transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
         }
 
         /* Forms */
@@ -81,32 +135,34 @@
         }
 
         label {
-            font-weight: 500;
+            font-weight: 600;
+            color: #1e293b;
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .radio-group {
             display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
+            gap: 20px;
+            margin-bottom: 15px;
             align-items: center;
         }
 
         input[type="text"], select, textarea {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
             font-family: 'Prompt';
             box-sizing: border-box;
-            margin-top: 5px;
-            transition: border-color 0.3s;
+            transition: all 0.3s;
+            font-size: 0.95em;
         }
 
         input[type="text"]:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
 
         .btn-submit {
@@ -115,17 +171,21 @@
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
+            border-radius: 12px;
+            font-size: 1.2em;
             font-family: 'Prompt';
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
         .btn-submit:hover {
             transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 20px rgba(80, 227, 194, 0.4);
         }
 
         .btn-submit:disabled {
@@ -145,165 +205,210 @@
         }
 
         .podium-step {
-            width: 100px;
-            background: linear-gradient(to top, var(--primary), #a1c4fd);
-            border-radius: 10px 10px 0 0;
+            width: 110px;
+            border-radius: 15px 15px 0 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             color: white;
             font-weight: bold;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
             animation: riseUp 1s ease forwards;
             opacity: 0;
-            padding-top: 10px;
+            padding-top: 15px;
             text-align: center;
+            position: relative;
         }
 
-        .rank-1 { height: 250px; animation-delay: 0.6s; background: linear-gradient(to top, #f6d365, #fda085); }
-        .rank-2 { height: 180px; animation-delay: 0.3s; background: linear-gradient(to top, #e0c3fc, #8ec5fc); }
-        .rank-3 { height: 120px; animation-delay: 0s; }
+        .rank-1 { height: 260px; animation-delay: 0.6s; background: linear-gradient(to top, #f5af19, #f12711); z-index: 3;}
+        .rank-2 { height: 190px; animation-delay: 0.3s; background: linear-gradient(to top, #8e9eab, #eef2f3); color:#333; z-index: 2;}
+        .rank-3 { height: 130px; animation-delay: 0s; background: linear-gradient(to top, #8A2387, #E94057); z-index: 1;}
 
-        .medal { font-size: 2em; margin-bottom: 10px; }
-        .station-name { padding: 0 5px; font-size: 0.9em; word-break: break-word; }
+        .medal { font-size: 2.5em; margin-bottom: 10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); }
+        .station-name { padding: 0 5px; font-size: 0.95em; word-break: break-word; line-height: 1.2;}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes riseUp { from { height: 0; opacity: 0; } to { opacity: 1; } }
+        /* --- Success Page --- */
+        #success-page {
+            text-align: center;
+            padding: 50px 20px;
+            animation: fadeIn 0.8s ease;
+        }
         
-        .hidden { display: none; }
+        .success-icon {
+            font-size: 5em;
+            color: var(--secondary);
+            margin-bottom: 20px;
+            animation: bounceIn 1s cubic-bezier(0.28, 0.84, 0.42, 1);
+        }
+
+        .btn-close {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: #cbd5e1;
+            color: #334155;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1em;
+            font-family: 'Prompt';
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-close:hover {
+            background: #94a3b8;
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes riseUp { from { height: 0; opacity: 0; } to { opacity: 1; } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        @keyframes pulse { 0% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(1); } }
+        @keyframes bounceIn { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Logo_of_the_Ministry_of_Public_Health_of_Thailand.svg/1200px-Logo_of_the_Ministry_of_Public_Health_of_Thailand.svg.png" alt="MOPH Logo">
-        <h2>แบบประเมินกิจกรรมวิชาชีพพยาบาล</h2>
-        <p>กลุ่มงานการพยาบาล โรงพยาบาลสะเดา</p>
+<div class="main-container">
+    <div class="header-card">
+        <div class="header-content">
+            <img src="https://img5.pic.in.th/file/secure-sv1/logo_DTAM2RGB.png" alt="MOPH Logo">
+            <h2>แบบประเมินกิจกรรมวิชาชีพพยาบาล</h2>
+            <p><i class="fas fa-hospital-user"></i> กลุ่มงานการพยาบาล โรงพยาบาลสะเดา</p>
+        </div>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('evaluation')"><i class="fas fa-edit"></i> แบบประเมิน</button>
-        <button class="tab-btn" onclick="switchTab('summary')"><i class="fas fa-chart-bar"></i> สรุปคะแนน</button>
-    </div>
+    <div class="content-card" id="app-content">
+        <div class="tabs" id="tab-menu">
+            <button class="tab-btn active" onclick="switchTab('evaluation')"><i class="fas fa-edit"></i> แบบประเมิน</button>
+            <button class="tab-btn" onclick="switchTab('summary')"><i class="fas fa-chart-bar"></i> สรุปคะแนน</button>
+        </div>
 
-    <div id="evaluation">
-        <form id="nursingForm" onsubmit="event.preventDefault(); submitData();">
-            
-            <div class="form-group">
-                <label>1. กิจกรรมการปฐมนิเทศนี้ควรทำในการปฏิบัติงานของหัวหน้างาน/หัวหน้าเวรทุกวันที่ปฏิบัติงานหรือไม่?</label>
-                <div class="radio-group">
-                    <label><input type="radio" name="q1" value="ควร" required> ควร</label>
-                    <label><input type="radio" name="q1" value="ไม่ควร"> ไม่ควร</label>
-                </div>
-                <input type="text" name="q1_reason" placeholder="โปรดระบุเหตุผลประกอบ..." required>
-            </div>
-
-            <div class="form-group">
-                <label>2. ฐานและพี่เลี้ยงที่ท่านประทับใจที่สุดคือ?</label>
-                <select id="q2_station" name="q2_station" onchange="toggleMentorSection()" required>
-                    <option value="">-- กรุณาเลือกฐานที่ประทับใจที่สุด --</option>
-                    <option value="การบริหารยา">เรื่องที่ 1 การบริหารยา</option>
-                    <option value="IV">เรื่องที่ 2 IV</option>
-                    <option value="แลป">เรื่องที่ 3 แลป</option>
-                    <option value="สวนปัสสาวะ">เรื่องที่ 4 สวนปัสสาวะ</option>
-                    <option value="ทำแผล">เรื่องที่ 5 ทำแผล</option>
-                    <option value="CLine">เรื่องที่ 6 CLine</option>
-                </select>
+        <div id="evaluation">
+            <form id="nursingForm" onsubmit="event.preventDefault(); submitData();">
                 
-                <div id="mentor-section" class="hidden" style="margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
-                    <label style="color: var(--primary);">พี่เลี้ยงที่ประทับใจประจำฐาน:</label>
-                    <select id="q2_mentor" name="q2_mentor" required>
-                        <option value="">-- กรุณาเลือกชื่อพี่เลี้ยง --</option>
-                        <option value="พี่หล่าน">พี่หล่าน</option>
-                        <option value="พี่ยะ">พี่ยะ</option>
-                        <option value="ด๊ะ">ด๊ะ</option>
-                        <option value="สุมาลี">สุมาลี</option>
-                        <option value="เอื้ออารีย์">เอื้ออารีย์</option>
-                        <option value="พี่ต้น">พี่ต้น</option>
-                        <option value="พี่สาว">พี่สาว</option>
-                        <option value="ดาว">ดาว</option>
-                        <option value="เกศแก้ว">เกศแก้ว</option>
-                        <option value="พี่โม">พี่โม</option>
-                        <option value="ไหม">ไหม</option>
-                        <option value="เปิ้ล">เปิ้ล</option>
-                        <option value="อี่">อี่</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>3. ท่านอยากให้หัวหน้า/พี่ Incharge สอนเรื่องอะไรมากที่สุด?</label>
-                <input type="text" name="q3" placeholder="ระบุเรื่องที่อยากให้สอน..." required>
-            </div>
-
-            <div class="form-group">
-                <label>4. ท่านอยากสอนเรื่องอะไรให้น้องมากที่สุด (เมื่อท่านเป็นพี่)?</label>
-                <input type="text" name="q4" placeholder="ระบุเรื่องที่อยากสอนน้อง..." required>
-            </div>
-
-            <div class="form-group">
-                <label>5. หากท่านเป็นผู้รับบริการ ท่านอยากเจอพยาบาลที่มีคุณลักษณะอย่างไร?</label>
-                <textarea name="q5" rows="3" placeholder="อธิบายคุณลักษณะ..." required></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>6. ให้นึกข้อดีของท่านมา 10 ข้อ</label>
-                <div id="strengths-list">
+                <div class="form-group">
+                    <label>1. กิจกรรมการปฐมนิเทศนี้ควรทำในการปฏิบัติงานของหัวหน้างาน/หัวหน้าเวรทุกวันที่ปฏิบัติงานหรือไม่?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="q1" value="ควร" required> ควร</label>
+                        <label><input type="radio" name="q1" value="ไม่ควร"> ไม่ควร</label>
                     </div>
-            </div>
+                    <input type="text" name="q1_reason" placeholder="โปรดระบุเหตุผลประกอบ..." required>
+                </div>
 
-            <div class="form-group">
-                <label>7. ท่านมีข้อที่ควรปรับปรุงตัวเองหรือไม่ และควรปรับอย่างไร?</label>
-                <textarea name="q7" rows="3" placeholder="ระบุข้อควรปรับปรุงและวิธีการ..." required></textarea>
-            </div>
+                <div class="form-group">
+                    <label>2. ฐานและพี่เลี้ยงที่ท่านประทับใจที่สุดคือ?</label>
+                    <select id="q2_station" name="q2_station" onchange="toggleMentorSection()" required>
+                        <option value="">-- กรุณาเลือกฐานที่ประทับใจที่สุด --</option>
+                        <option value="การบริหารยา">เรื่องที่ 1 การบริหารยา</option>
+                        <option value="IV">เรื่องที่ 2 IV</option>
+                        <option value="แลป">เรื่องที่ 3 แลป</option>
+                        <option value="สวนปัสสาวะ">เรื่องที่ 4 สวนปัสสาวะ</option>
+                        <option value="ทำแผล">เรื่องที่ 5 ทำแผล</option>
+                        <option value="CLine">เรื่องที่ 6 CLine</option>
+                    </select>
+                    
+                    <div id="mentor-section" class="hidden" style="margin-top:15px; padding-top:15px; border-top: 1px dashed #ccc;">
+                        <label style="color: var(--primary);">พี่เลี้ยงที่ประทับใจประจำฐาน:</label>
+                        <select id="q2_mentor" name="q2_mentor" required>
+                            <option value="">-- กรุณาเลือกชื่อพี่เลี้ยง --</option>
+                            <option value="พี่หล่าน">พี่หล่าน</option>
+                            <option value="พี่ยะ">พี่ยะ</option>
+                            <option value="ด๊ะ">ด๊ะ</option>
+                            <option value="สุมาลี">สุมาลี</option>
+                            <option value="เอื้ออารีย์">เอื้ออารีย์</option>
+                            <option value="พี่ต้น">พี่ต้น</option>
+                            <option value="พี่สาว">พี่สาว</option>
+                            <option value="ดาว">ดาว</option>
+                            <option value="เกศแก้ว">เกศแก้ว</option>
+                            <option value="พี่โม">พี่โม</option>
+                            <option value="ไหม">ไหม</option>
+                            <option value="เปิ้ล">เปิ้ล</option>
+                            <option value="อี่">อี่</option>
+                        </select>
+                    </div>
+                </div>
 
-            <button type="submit" id="submitBtn" class="btn-submit">
-                <i class="fas fa-paper-plane"></i> ส่งแบบประเมิน
-            </button>
-        </form>
-    </div>
+                <div class="form-group">
+                    <label>3. ท่านอยากให้หัวหน้า/พี่ Incharge สอนเรื่องอะไรมากที่สุด?</label>
+                    <input type="text" name="q3" placeholder="ระบุเรื่องที่อยากให้สอน..." required>
+                </div>
 
-    <div id="summary" class="hidden">
-        <h3 style="text-align:center; color: #333;">🏆 ฐานที่ได้รับความประทับใจสูงสุด Top 3</h3>
-        <p style="text-align:center; font-size: 0.9em; color: #666;">(ระบบแสดงผลการจำลอง ดึงข้อมูลจริงจาก Google Sheets)</p>
-        <div class="podium-container">
-            <div class="podium-step rank-2">
-                <div class="medal">🥈</div>
-                <div id="rank2-name" class="station-name">กำลังโหลด...</div>
-            </div>
-            <div class="podium-step rank-1">
-                <div class="medal">🥇</div>
-                <div id="rank1-name" class="station-name">กำลังโหลด...</div>
-            </div>
-            <div class="podium-step rank-3">
-                <div class="medal">🥉</div>
-                <div id="rank3-name" class="station-name">กำลังโหลด...</div>
+                <div class="form-group">
+                    <label>4. ท่านอยากสอนเรื่องอะไรให้น้องมากที่สุด (เมื่อท่านเป็นพี่)?</label>
+                    <input type="text" name="q4" placeholder="ระบุเรื่องที่อยากสอนน้อง..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>5. หากท่านเป็นผู้รับบริการ ท่านอยากเจอพยาบาลที่มีคุณลักษณะอย่างไร?</label>
+                    <textarea name="q5" rows="3" placeholder="อธิบายคุณลักษณะ..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>6. ให้นึกข้อดีของท่านมา 10 ข้อ</label>
+                    <div id="strengths-list">
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label>7. ท่านมีข้อที่ควรปรับปรุงตัวเองหรือไม่ และควรปรับอย่างไร?</label>
+                    <textarea name="q7" rows="3" placeholder="ระบุข้อควรปรับปรุงและวิธีการ..." required></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i> ยืนยันการส่งแบบประเมิน
+                </button>
+            </form>
+        </div>
+
+        <div id="summary" class="hidden">
+            <h3 style="text-align:center; color: #1e293b; font-size: 1.5em; margin-bottom: 10px;">🏆 ฐานที่ได้รับความประทับใจสูงสุด</h3>
+            <div class="podium-container">
+                <div class="podium-step rank-2">
+                    <div class="medal">🥈</div>
+                    <div id="rank2-name" class="station-name">กำลังโหลด...</div>
+                </div>
+                <div class="podium-step rank-1">
+                    <div class="medal">🥇</div>
+                    <div id="rank1-name" class="station-name">กำลังโหลด...</div>
+                </div>
+                <div class="podium-step rank-3">
+                    <div class="medal">🥉</div>
+                    <div id="rank3-name" class="station-name">กำลังโหลด...</div>
+                </div>
             </div>
         </div>
+
+        <div id="success-page" class="hidden">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h2 style="color: #1e293b;">ทางผู้จัดได้รับข้อมูลแล้ว</h2>
+            <p style="color: #64748b; font-size: 1.1em;">ขอบพระคุณที่ร่วมเป็นส่วนหนึ่งในการประเมินกิจกรรมครับ/ค่ะ</p>
+            <button class="btn-close" onclick="closeAndReset()"><i class="fas fa-times"></i> ปิดหน้าต่าง</button>
+        </div>
+
     </div>
 </div>
 
 <script>
-    // URL ของ Web App Google Apps Script ที่คุณผิงให้มา
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby7vUdRdZlK2YYzjZ4UJGnKRUBTi8ewzkOswOf0f4PknpeCJB2aZM4bN4h93ggagzSk9A/exec";
 
-    // สลับ Tab
     function switchTab(tabId) {
         document.getElementById('evaluation').classList.add('hidden');
         document.getElementById('summary').classList.add('hidden');
+        document.getElementById('success-page').classList.add('hidden');
+        
         document.getElementById(tabId).classList.remove('hidden');
         
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         event.currentTarget.classList.add('active');
 
-        if(tabId === 'summary') {
-            fetchSummaryData();
-        }
+        if(tabId === 'summary') fetchSummaryData();
     }
 
-    // แสดง/ซ่อน ส่วนเลือกพี่เลี้ยง เมื่อเลือกฐาน
     function toggleMentorSection() {
         const station = document.getElementById('q2_station').value;
         const mentorSection = document.getElementById('mentor-section');
@@ -319,7 +424,6 @@
         }
     }
 
-    // สร้าง Input ข้อ 6 จำนวน 10 ข้อตอนโหลดหน้าเว็บ
     window.onload = function() {
         const listDiv = document.getElementById('strengths-list');
         for(let i=1; i<=10; i++) {
@@ -327,26 +431,22 @@
         }
     }
 
-    // ฟังก์ชันรวบรวมข้อมูลและส่งไปที่ Google Apps Script
     async function submitData() {
         const btn = document.getElementById('submitBtn');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> กำลังบันทึกข้อมูล...';
         btn.disabled = true;
 
-        // ดึงค่าข้อ 1
         const q1_radio = document.querySelector('input[name="q1"]:checked');
         const q1 = q1_radio ? q1_radio.value : "";
         const q1_reason = document.querySelector('input[name="q1_reason"]').value;
 
-        // รวบรวมข้อ 6 ทั้ง 10 ข้อ เข้าด้วยกัน (คั่นด้วย comma)
         let q6_array = [];
         for(let i=1; i<=10; i++) {
             let val = document.getElementById(`q6_${i}`).value.trim();
             if(val !== "") q6_array.push(`${i}. ${val}`);
         }
-        const q6_combined = q6_array.join("\n"); // นำมารวมกันเว้นบรรทัด เพื่อส่งลง 1 เซลล์ในชีต
+        const q6_combined = q6_array.join("\n");
 
-        // สร้าง Object ข้อมูล
         const dataPayload = {
             q1: q1,
             q1_reason: q1_reason,
@@ -360,48 +460,82 @@
         };
 
         try {
-            // ส่งข้อมูลด้วย POST request ไปยัง GAS
-            // ใช้ text/plain เพื่อป้องกันปัญหา CORS Preflight ในบางกรณีของ GAS
-            const response = await fetch(WEB_APP_URL, {
+            await fetch(WEB_APP_URL, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8", 
-                },
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(dataPayload)
             });
-
-            // แจ้งเตือนเมื่อสำเร็จ
-            alert("บันทึกข้อมูลสำเร็จ! ขอบคุณสำหรับการประเมินครับ");
-            document.getElementById('nursingForm').reset();
-            document.getElementById('mentor-section').classList.add('hidden');
-
+            showSuccessPopup();
         } catch (error) {
             console.error("Error:", error);
-            // กรณี GAS ไม่ยอมส่ง Response กลับมาติด CORS ฝั่ง Client แต่ข้อมูลเข้าชีตไปแล้ว
-            alert("บันทึกข้อมูลเรียบร้อยแล้ว!"); 
-            document.getElementById('nursingForm').reset();
-            document.getElementById('mentor-section').classList.add('hidden');
+            // แจ้งเตือนสำเร็จแม้ติด CORS ฝั่ง Client
+            showSuccessPopup();
         } finally {
-            // คืนสถานะปุ่ม
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> ส่งแบบประเมิน';
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> ยืนยันการส่งแบบประเมิน';
             btn.disabled = false;
         }
     }
 
-    // ฟังก์ชันดึงข้อมูลสรุปคะแนน (จำลองแอนิเมชัน)
-    // หากต้องการดึงข้อมูลจริงจาก GAS ต้องเขียนฟังก์ชัน doGet เพิ่มในฝั่ง Apps Script ครับ
-    function fetchSummaryData() {
-        // รีเซ็ตข้อความก่อนแอนิเมชันเริ่ม
-        document.getElementById('rank1-name').innerText = "กำลังคำนวณ...";
-        document.getElementById('rank2-name').innerText = "กำลังคำนวณ...";
-        document.getElementById('rank3-name').innerText = "กำลังคำนวณ...";
+    // ฟังก์ชันแสดง Popup สวยๆ ด้วย SweetAlert2
+    function showSuccessPopup() {
+        Swal.fire({
+            title: 'ขอบคุณสำหรับคำตอบ!',
+            text: 'ระบบได้บันทึกข้อมูลของคุณเรียบร้อยแล้ว',
+            icon: 'success',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#50e3c2',
+            background: '#ffffff',
+            backdrop: `rgba(15, 23, 42, 0.6)`,
+            customClass: {
+                title: 'prompt-font',
+                popup: 'rounded-popup'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // ซ่อนฟอร์มและปุ่มเมนู แล้วโชว์หน้า Success
+                document.getElementById('evaluation').classList.add('hidden');
+                document.getElementById('tab-menu').classList.add('hidden');
+                document.getElementById('success-page').classList.remove('hidden');
+            }
+        });
+    }
 
-        // จำลองการโหลดข้อมูล 1 วินาที
-        setTimeout(() => {
-            document.getElementById('rank1-name').innerText = "การบริหารยา";
-            document.getElementById('rank2-name').innerText = "IV";
-            document.getElementById('rank3-name').innerText = "ทำแผล";
-        }, 800);
+    // ฟังก์ชันกดปิดหน้าต่าง (รีเซ็ตฟอร์มให้พร้อมสำหรับคนถัดไป)
+    function closeAndReset() {
+        document.getElementById('nursingForm').reset();
+        document.getElementById('mentor-section').classList.add('hidden');
+        
+        // กลับไปหน้าฟอร์ม
+        document.getElementById('success-page').classList.add('hidden');
+        document.getElementById('tab-menu').classList.remove('hidden');
+        document.getElementById('evaluation').classList.remove('hidden');
+        
+        // เลื่อนหน้าจอขึ้นไปบนสุด
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function fetchSummaryData() {
+        document.getElementById('rank1-name').innerText = "กำลังโหลด...";
+        document.getElementById('rank2-name').innerText = "กำลังโหลด...";
+        document.getElementById('rank3-name').innerText = "กำลังโหลด...";
+
+        try {
+            const response = await fetch(WEB_APP_URL);
+            const result = await response.json();
+
+            if (result.status === "success" && result.top3) {
+                document.getElementById('rank1-name').innerText = result.top3[0];
+                document.getElementById('rank2-name').innerText = result.top3[1];
+                document.getElementById('rank3-name').innerText = result.top3[2];
+            } else {
+                document.getElementById('rank1-name').innerText = "โหลดข้อมูลล้มเหลว";
+            }
+        } catch (error) {
+            console.error("Error fetching summary:", error);
+            document.getElementById('rank1-name').innerText = "รอการประมวลผล";
+            document.getElementById('rank2-name').innerText = "-";
+            document.getElementById('rank3-name').innerText = "-";
+        }
     }
 </script>
 
