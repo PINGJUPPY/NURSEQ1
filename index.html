@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินการอบรมออนไลน์ - พยาบาลโรงพยาบาลสะเดา</title>
+    <title>ระบบประเมินการอบรมออนไลน์ - Nurse Smart Exam</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -119,7 +119,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 glass-panel p-6 rounded-3xl flex flex-col">
                     <h3 class="font-bold text-lg text-emerald-800 mb-2">🏆 บอร์ดสรุปคะแนนรวมสูงสุด</h3>
-                    <p class="text-xs text-gray-400 mb-4">วัดผลรวมคะแนนดิบ 50 ข้อ (ถ้าคะแนนเท่ากัน ใครส่งชุดล่าสุดเสร็จก่อนชนะ)</p>
+                    <p class="text-xs text-gray-400 mb-4">วัดผลรวมคะแนนดิบทั้งหมด (ถ้าคะแนนเท่ากัน ใครส่งชุดล่าสุดเสร็จก่อนชนะ)</p>
                     <div class="overflow-y-auto max-h-[500px] flex-grow">
                         <table class="w-full text-left text-sm">
                             <thead>
@@ -167,7 +167,6 @@
     </footer>
 
     <script>
-        // ลิงก์เชื่อมโยงไปยัง Google Apps Script Web App ของคุณ
         const API_URL = "https://script.google.com/macros/s/AKfycbwP_S-ABl42AFfSdOmQFX_rLHEMvK3hrBFbLgTvswP8SWuEAxQezOyotmoReN3r69N5Uw/exec";
         
         let currentUser = null;
@@ -182,19 +181,16 @@
         let isAdminMode = false;
         let adminRefreshInterval;
 
-        // เริ่มต้นรันฟังก์ชันเมื่อโหลดเว็บหน้าแรก
         document.addEventListener("DOMContentLoaded", () => {
             checkLocalUser();
             fetchData();
             
-            // สร้างเมนูสลับดูข้อมูลชุดการสอบหลังบ้านของแอดมิน
             const select = document.getElementById("selectSetFilter");
             for(let i = 1; i <= 10; i++) {
                 select.innerHTML += `<option value="${i}">ค้นหาข้อมูลชุดประเมินที่ ${i}</option>`;
             }
         });
 
-        // ดึงความจำของผู้สอบเดิมที่เคยล็อกอิน
         function checkLocalUser() {
             const saved = localStorage.getItem("nurse_exam_user");
             if (saved) {
@@ -204,18 +200,17 @@
             }
         }
 
-        // ดึงข้อมูลหลักจาก API หลังบ้าน Google Sheets
         async function fetchData() {
-            if(!isAdminMode) showView("loaderView");
+            if(!isAdminMode && allQuestions.length === 0) showView("loaderView");
             try {
-                // 1. ดึงชุดข้อสอบทั้งหมด (ทำเฉพาะครั้งแรกเพื่อประหยัดสปีดเน็ต)
+                // 1. ดึงชุดข้อสอบทั้งหมด (ทำครั้งแรกครั้งเดียวเพื่อความเร็ว)
                 if(allQuestions.length === 0) {
                     let resQ = await fetch(`${API_URL}?action=get_questions`);
                     let dataQ = await resQ.json();
                     allQuestions = dataQ.data;
                 }
 
-                // 2. ดึงสถานะเปิดข้อสอบและตารางคะแนนดิบ
+                // 2. ดึงสถานะคุมสอบ และตารางคะแนนดิบ
                 let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard`);
                 let dataS = await resS.json();
                 quizStatus = dataS.quizStatus;
@@ -236,7 +231,7 @@
             }
         }
 
-        // แสดงผลหน้าหลักคลังข้อสอบ 10 ชุดของผู้สอบ
+        // หน้าบอร์ดผู้สอบ (อัปเดตระบบนับจำนวนข้อจริงจาก Google Sheets)
         function renderDashboard() {
             const grid = document.getElementById("quizGrid");
             grid.innerHTML = "";
@@ -247,13 +242,17 @@
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let isDone = mySubmissions.find(s => s.set_number === i);
                 
-                let cardClass = "glass-panel p-5 rounded-2xl flex flex-col items-center text-center transition transform";
+                // 🌟 นับจำนวนข้อจริงในแต่ละชุดจากชีต
+                let totalQuestionsInSet = allQuestions.filter(q => q.set_number === i).length;
+                let displayCount = totalQuestionsInSet === 0 ? "หลาย" : totalQuestionsInSet;
+
+                let cardClass = "glass-panel p-5 rounded-2xl flex flex-col justify-between items-center text-center transition transform";
                 let icon, titleColor, btnHtml;
 
                 if (isDone) {
                     cardClass += " opacity-90 border-green-200 bg-green-50/30";
                     icon = "✅"; titleColor = "text-green-700";
-                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-600 bg-green-100 py-2 px-4 rounded-xl w-full">ทำเสร็จแล้ว (${isDone.score} คะแนน)</div>`;
+                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-600 bg-green-100 py-2 px-4 rounded-xl w-full">ทำเสร็จแล้ว (${isDone.score} / ${displayCount} ค.)</div>`;
                 } else if (isOpen) {
                     cardClass += " hover:-translate-y-2 hover:shadow-xl active-glow";
                     icon = "📝"; titleColor = "text-sky-800";
@@ -266,10 +265,12 @@
 
                 grid.innerHTML += `
                     <div class="${cardClass}">
-                        <div class="text-4xl mb-2">${icon}</div>
-                        <h3 class="font-bold ${titleColor} text-lg">ชุดที่ ${i}</h3>
-                        <p class="text-xs text-gray-400">จำนวนคำถาม 5 ข้อ</p>
-                        ${btnHtml}
+                        <div>
+                            <div class="text-4xl mb-2">${icon}</div>
+                            <h3 class="font-bold ${titleColor} text-lg">ชุดที่ ${i}</h3>
+                            <p class="text-xs text-gray-400 mb-1">จำนวนคำถาม ${displayCount} ข้อ</p>
+                        </div>
+                        <div class="w-full">${btnHtml}</div>
                     </div>
                 `;
             }
@@ -309,7 +310,13 @@
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        // ตรวจสอบและบันทึกคะแนนคำตอบส่งขึ้นสเปรดชีต
+        function updateTimer() {
+            let diff = Math.floor((Date.now() - startTime) / 1000);
+            let m = Math.floor(diff / 60).toString().padStart(2, '0');
+            let s = (diff % 60).toString().padStart(2, '0');
+            document.getElementById("timerDisplay").innerText = `${m}:${s}`;
+        }
+
         async function submitQuiz() {
             let questions = allQuestions.filter(q => q.set_number === currentSet);
             let score = 0;
@@ -321,7 +328,7 @@
                 else if (selected.value === q.answer) score++;
             });
 
-            if (!answeredAll) return Swal.fire("คำเตือน", "กรุณาตอบคำถามพยาบาลให้ครบทุกข้อก่อนกดส่งครับ", "warning");
+            if (!answeredAll) return Swal.fire("คำเตือน", "กรุณาตอบคำถามให้ครบทุกข้อก่อนกดส่งครับ", "warning");
 
             clearInterval(timerInterval);
             let timeUsed = Math.floor((Date.now() - startTime) / 1000);
@@ -366,7 +373,6 @@
                     document.getElementById("subTitle").innerText = "หน้าต่างผู้ควบคุมการบรรยายและสรุปผลคะแนนสด";
                     
                     fetchData();
-                    // ตั้งเซ็ตดึงบอร์ดคะแนนสดแบบอัตโนมัติ (Live Polling ทุกๆ 4 วินาที)
                     adminRefreshInterval = setInterval(fetchData, 4000);
                 } else if (result.value) {
                     Swal.fire("ล็อกอินล้มเหลว", "รหัสผ่านวิทยากรไม่ถูกต้อง", "error");
@@ -375,14 +381,13 @@
         }
 
         function renderAdminPanel() {
-            // สร้างแผงควบคุมสวิตช์เปิดข้อสอบสะสม 1-10 ชุด
             const togglesContainer = document.getElementById("adminToggles");
             togglesContainer.innerHTML = "";
             
             for(let i = 1; i <= 10; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let btnColor = isOpen ? "bg-emerald-500 text-white shadow-md shadow-emerald-100" : "bg-gray-200 text-gray-700 hover:bg-gray-300";
-                let statusText = isOpen ? "🔓 ผู้สอบกำลังเข้าทำ" : "🔒 ยังไม่เปิดคลัง";
+                let statusText = isOpen ? "🔓 เปิดใช้งานคลังอยู่" : "🔒 ปิดใช้งานคลัง";
                 
                 togglesContainer.innerHTML += `
                     <div class="bg-white p-3 rounded-2xl border border-gray-100 flex flex-col justify-between items-center text-center shadow-sm">
@@ -399,13 +404,13 @@
             showView("adminView");
         }
 
-        // ประมวลผลลีดเดอร์บอร์ดคัดแยกตามเงื่อนไขอย่างแม่นยำ
         function renderAdminLeaderboards() {
             const currentSelectedSet = parseInt(document.getElementById("selectSetFilter").value);
+            let totalQCount = allQuestions.filter(q => q.set_number === currentSelectedSet).length;
             
-            // 🌟 1. ลีดเดอร์บอร์ดรายชุด: เรียงตามคะแนนสูงสุดไปต่ำสุด -> ส่งก่อน (ความเร็วกว่า) ขึ้นอันดับแรก
+            // 🌟 1. ลีดเดอร์บอร์ดรายชุด: เรียงคะแนนสูงไปต่ำ -> ส่งก่อนขึ้นก่อน
             let setFiltered = allSubmissions.filter(s => s.set_number === currentSelectedSet);
-            document.getElementById("txtSubCount").innerText = `จำนวนผู้ส่งคำตอบในชุดนี้: ${setFiltered.length} คน`;
+            document.getElementById("txtSubCount").innerText = `จำนวนผู้ส่งคำตอบในชุดนี้: ${setFiltered.length} คน (ชุดนี้มีข้อสอบทั้งหมด ${totalQCount} ข้อ)`;
             
             let setSorted = setFiltered.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
@@ -421,13 +426,13 @@
                         <td class="py-3 font-bold text-sky-800 text-center">${medal}${idx+1}</td>
                         <td class="py-3 font-semibold">${s.name}</td>
                         <td class="py-3 text-gray-500 text-xs">${s.position} <span class="text-sky-600 font-bold">[ตึก ${s.department}]</span></td>
-                        <td class="py-3 font-bold text-emerald-600 text-center">${s.score} / 5</td>
+                        <td class="py-3 font-bold text-emerald-600 text-center">${s.score} / ${totalQCount}</td>
                         <td class="py-3 text-right font-mono text-gray-600 pr-2">${s.time_used} วินาที</td>
                     </tr>
                 `;
             });
 
-            // 🌟 2. ลีดเดอร์บอร์ดผลรวม 10 ชุดสะสม: เรียงคะแนนรวมมากไปน้อย -> สปีดความเร็วใครปิดชุดล่าสุดก่อนชนะ
+            // 🌟 2. ลีดเดอร์บอร์ดผลรวม: เรียงคะแนนสะสมมากไปน้อย -> สปีดความเร็วใครปิดชุดล่าสุดก่อนชนะ
             let totalMap = {};
             allSubmissions.forEach(s => {
                 const uid = s.user_id.toString().trim();
@@ -453,14 +458,13 @@
                 totalBody.innerHTML += `
                     <tr class="border-b border-gray-100 hover:bg-emerald-50/30">
                         <td class="py-2.5 font-bold text-amber-600 text-center">${crown}${idx+1}</td>
-                        <td class="py-2.5 text-xs font-medium">${t.name}<br><span class="text-gray-400">สังกัด ${t.dept}</span></td>
+                        <td class="py-2.5 text-xs font-medium">${t.name}<br><span class="text-gray-400">ตึก ${t.dept}</span></td>
                         <td class="py-2.5 text-right font-bold text-emerald-600 pr-2">${t.total_score} คะแนน</td>
                     </tr>
                 `;
             });
         }
 
-        // ยิงคำสั่ง POST สลับสวิตช์ข้ามฝั่งไปที่ Google Sheets
         async function toggleQuizStatus(setNum, openState) {
             try {
                 let res = await fetch(API_URL, {
@@ -478,7 +482,7 @@
 
         function exitAdmin() {
             isAdminMode = false;
-            clearInterval(adminRefreshInterval); // ปิดลูปส่งคำขอเรียลไทม์เพื่อประหยัดงาน
+            clearInterval(adminRefreshInterval); 
             checkLocalUser();
             fetchData();
         }
