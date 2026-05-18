@@ -12,16 +12,12 @@
 
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
-        
-        /* สไตล์มิติกะจกฝ้าฝังเลเยอร์ Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
-        
-        /* อนิเมชั่นเรืองแสงรอบการ์ดข้อสอบที่ปลดล็อค */
         .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
@@ -29,8 +25,6 @@
             100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
         }
         .hidden-view { display: none !important; }
-
-        /* สไตล์วงกลมโหลดความสำเร็จแบบหมุนเรียบหรู */
         .circle-loader {
             width: 120px;
             height: 120px;
@@ -69,18 +63,18 @@
                 <div class="circle-loader"></div>
                 <div id="loadPercentText" class="absolute text-2xl font-bold text-sky-600">0%</div>
             </div>
-            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังประมวลผลข้อมูลระบบความสำเร็จ 100%...</p>
+            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังซิงค์คลังข้อมูลเวอร์ชันล่าสุดแบบป้องกันแคชค้าง...</p>
         </div>
 
         <div id="loginView" class="hidden-view max-w-md mx-auto glass-panel p-8 rounded-3xl animate__animated animate__zoomIn">
-            <h2 class="text-2xl font-bold text-center text-sky-800 mb-2">ลงทะเบียนเข้าสอบ</h2>
-            <p class="text-xs text-center text-gray-400 mb-6">กรอกเบอร์โทรศัพท์เดิมเพื่อทำคะแนนสะสมต่อได้ทันที</p>
+            <h2 class="text-2xl font-bold text-center text-sky-800 mb-2">เข้าสู่ระบบ / ลงทะเบียน</h2>
+            <p class="text-xs text-center text-gray-400 mb-6">พิมพ์เบอร์โทรศัพท์เดิมเพื่อทำคะแนนสะสมต่อได้ทันที</p>
             <div class="space-y-4">
-                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (ใช้เข้าระบบซ้ำ)">
+                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (ใช้ดึงคะแนนสะสมเดิม)">
                 <input type="text" id="inpName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ชื่อ - นามสกุล">
                 <input type="text" id="inpPos" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ตำแหน่ง">
                 <input type="text" id="inpDept" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="หน่วยงาน/ตึก">
-                <button onclick="handleLogin()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:-translate-y-1">เข้าสู่ระบบ 🚀</button>
+                <button onclick="handleLogin()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:-translate-y-1">เข้าสู่ระบบเพื่อทำต่อ 🚀</button>
             </div>
         </div>
 
@@ -88,7 +82,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม</h2>
-                    <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรให้แบบเรียลไทม์</p>
+                    <p class="text-xs text-gray-400">ระบบเชื่อมโยงคะแนนสะสมเดิมของคุณแบบเรียลไทม์ (Anti-Cache Mode)</p>
                 </div>
             </div>
             <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6"></div>
@@ -124,7 +118,7 @@
                 <button onclick="exitAdmin()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-xl">กลับสู่หน้าผู้สอบ</button>
             </div>
             <div class="glass-panel p-6 rounded-3xl mb-8">
-                <h3 class="font-bold text-lg text-sky-800 mb-4">📢 ควบคุมการสตรีมข้อสอบ (เปิดสะสมเพิ่มทีละวิชาได้)</h3>
+                <h3 class="font-bold text-lg text-sky-800 mb-4">📢 ควบคุมการสตรีมข้อสอบ</h3>
                 <div id="adminToggles" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -152,7 +146,6 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwP_S-ABl42AFfSdOmQFX_rLHEMvK3hrBFbLgTvswP8SWuEAxQezOyotmoReN3r69N5Uw/exec";
         
-        // 🌟 เพิ่มคลังรายชื่อวิชาของโรงพยาบาลสะเดาทั้ง 11 ชุด
         const QUIZ_NAMES = {
             1: "แบบทดสอบการพยาบาลโรคหัวใจ",
             2: "แบบทดสอบความรู้การดูแลบาดแผล",
@@ -188,7 +181,7 @@
         function animateFakeLoader(pct) {
             if(pct <= 100) {
                 document.getElementById("loadPercentText").innerText = `${pct}%`;
-                setTimeout(() => animateFakeLoader(pct + 5), 20);
+                setTimeout(() => animateFakeLoader(pct + 5), 15);
             } else {
                 fetchData().then(() => {
                     globalSyncInterval = setInterval(fetchData, 3000); 
@@ -211,20 +204,25 @@
         async function fetchData() {
             if(!isAdminMode && allQuestions.length === 0) showView("loaderView");
             try {
+                // 🌟 ข้อแก้ไขทำลายแคช (Cache Busting): แฝงรหัสเวลาลงท้ายลิงก์ เพื่อบีบให้ดึงข้อมูลอัปเดตใหม่ล่าสุดเสมอ
+                const antiCacheToken = `&_nocache=${new Date().getTime()}`;
+
                 if(allQuestions.length === 0) {
-                    let resQ = await fetch(`${API_URL}?action=get_questions`);
+                    let resQ = await fetch(`${API_URL}?action=get_questions${antiCacheToken}`);
                     let textQ = await resQ.text();
                     allQuestions = JSON.parse(textQ).data;
                 }
 
-                let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard`);
+                let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard${antiCacheToken}`);
                 let textS = await resS.text();
                 let dataS = JSON.parse(textS);
                 quizStatus = dataS.quizStatus;
                 allSubmissions = dataS.submissions;
                 
                 if(currentUser) {
-                    allSubmissions.filter(s => s.user_id.toString().trim() === currentUser.phone.toString().trim()).forEach(s => {
+                    let matchingSubmissions = allSubmissions.filter(s => s.user_id.toString().trim() === currentUser.phone.toString().trim());
+                    myDoneList = {}; 
+                    matchingSubmissions.forEach(s => {
                         myDoneList[s.set_number] = s.score;
                     });
                     localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
@@ -248,7 +246,6 @@
             document.getElementById("mainTitle").innerText = "NURSE-ED EVALUATION";
             document.getElementById("subTitle").innerText = "ระบบคลังข้อสอบออนไลน์เรียลไทม์";
 
-            // 🌟 ปรับลูปให้อ่านค่าแสดงผลถึงชุดที่ 11
             for (let i = 1; i <= 11; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let localScore = myDoneList[i]; 
@@ -397,7 +394,6 @@
                     document.getElementById("userInfo").classList.add("hidden-view");
                     document.getElementById("mainTitle").innerText = "SPEAKER PANEL";
                     
-                    // 🌟 เพิ่มตัวเลือกวิชาที่ 11 เข้า Dropdown แอดมิน
                     const select = document.getElementById("selectSetFilter");
                     select.innerHTML = "";
                     for(let i = 1; i <= 11; i++) select.innerHTML += `<option value="${i}">ชุดที่ ${i}: ${QUIZ_NAMES[i]}</option>`;
@@ -411,7 +407,6 @@
             const togglesContainer = document.getElementById("adminToggles");
             togglesContainer.innerHTML = "";
             
-            // 🌟 ปรับปุ่มคุมสอบวิทยากรให้รองรับชุดที่ 11
             for(let i = 1; i <= 11; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let btnColor = isOpen ? "bg-emerald-500 text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300";
@@ -494,6 +489,8 @@
             if(spinner) spinner.classList.remove("hidden-view");
 
             try {
+                // เพิ่มรหัสกันแคชในคำสั่งสลับปุ่มด้วย
+                const antiCacheToken = `&_nocache=${new Date().getTime()}`;
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "toggle_quiz", set_number: setNum, is_open: openState })
@@ -515,7 +512,7 @@
             const dept = document.getElementById("inpDept").value.trim();
 
             if (!phone || !name) return Swal.fire("ข้อมูลไม่ครบ", "กรุณากรอกเบอร์โทรศัพท์และชื่อ", "warning");
-            Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'กำลังเข้าสู่ระบบและเชื่อมฐานข้อมูลเรียลไทม์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             fetch(API_URL, {
                 method: "POST",
@@ -523,6 +520,10 @@
             }).then(res => res.json()).then(data => {
                 currentUser = { phone, name, position: pos, department: dept };
                 localStorage.setItem("nurse_exam_user", JSON.stringify(currentUser));
+                
+                myDoneList = {};
+                localStorage.removeItem(`done_scores_${phone}`);
+
                 Swal.close();
                 checkLocalUser();
                 fetchData();
