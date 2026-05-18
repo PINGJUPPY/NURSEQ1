@@ -12,16 +12,12 @@
 
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
-        
-        /* สไตล์มิติกะจกฝ้าฝังเลเยอร์ Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
-        
-        /* อนิเมชั่นเรืองแสงรอบการ์ดข้อสอบที่ปลดล็อค */
         .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
@@ -30,10 +26,10 @@
         }
         .hidden-view { display: none !important; }
 
-        /* สไตล์วงกลมโหลดความสำเร็จแบบหมุนเรียบหรู */
+        /* ข้อ 1: วงกลมความสำเร็จหมุน 100% สไตล์พยาบาล */
         .circle-loader {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             border: 8px solid rgba(14, 165, 233, 0.1);
             border-left-color: #0ea5e9;
             border-radius: 50%;
@@ -67,16 +63,16 @@
         <div id="loaderView" class="hidden-view flex flex-col items-center justify-center h-96">
             <div class="relative flex items-center justify-center">
                 <div class="circle-loader"></div>
-                <div id="loadPercentText" class="absolute text-xl font-bold text-sky-600">0%</div>
+                <div id="loadPercentText" class="absolute text-2xl font-bold text-sky-600">0%</div>
             </div>
-            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังประมวลผลระบบความสำเร็จ 100% ...</p>
+            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังประมวลผลข้อมูลระบบความสำเร็จ 100%...</p>
         </div>
 
         <div id="loginView" class="hidden-view max-w-md mx-auto glass-panel p-8 rounded-3xl animate__animated animate__zoomIn">
             <h2 class="text-2xl font-bold text-center text-sky-800 mb-2">ลงทะเบียนเข้าสอบ</h2>
             <p class="text-xs text-center text-gray-400 mb-6">กรอกเบอร์โทรศัพท์เดิมเพื่อทำคะแนนสะสมต่อได้ทันที</p>
             <div class="space-y-4">
-                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (สิทธิ์เข้าใช้หลัก)">
+                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (ใช้เข้าระบบซ้ำ)">
                 <input type="text" id="inpName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ชื่อ - นามสกุล">
                 <input type="text" id="inpPos" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ตำแหน่ง">
                 <input type="text" id="inpDept" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="หน่วยงาน/ตึก">
@@ -88,7 +84,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม</h2>
-                    <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรโดยอัตโนมัติแบบเรียลไทม์</p>
+                    <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรให้แบบเรียลไทม์</p>
                 </div>
             </div>
             <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
@@ -163,21 +159,20 @@
         let timerInterval;
         let isAdminMode = false;
         let globalSyncInterval;
-        let currentActiveView = "loaderView"; // ตัวแปรล็อกสถานะหน้าปัจจุบัน
+        let currentActiveView = "loaderView";
 
         document.addEventListener("DOMContentLoaded", () => {
             checkLocalUser();
-            // รันอนิเมชั่นเปอร์เซ็นต์โหลดหน้าแรกเพื่อความสมูท
             animateFakeLoader(0);
         });
 
         function animateFakeLoader(pct) {
             if(pct <= 100) {
                 document.getElementById("loadPercentText").innerText = `${pct}%`;
-                setTimeout(() => animateFakeLoader(pct + 4), 30);
+                setTimeout(() => animateFakeLoader(pct + 5), 25);
             } else {
                 fetchData().then(() => {
-                    globalSyncInterval = setInterval(fetchData, 3000);
+                    globalSyncInterval = setInterval(fetchData, 3000); // เริ่มลูบดึงข้อมูลออโต้
                 });
             }
         }
@@ -219,7 +214,6 @@
                 if (isAdminMode) { 
                     renderAdminPanel(); 
                 } else {
-                    // 🌟 ข้อ 2: บั๊กเด้งหน้าต่างถูกแก้ตรงนี้ หากผู้สอบอยู่หน้าทำข้อสอบ (quizView) ระบบเบื้องหลังจะไม่สั่งรีเรนเดอร์หน้าหลักไปขัดจังหวะเด็ดขาด
                     if (currentUser) { 
                         if(currentActiveView !== "quizView") renderDashboard(); 
                     } else { 
@@ -232,8 +226,6 @@
         function renderDashboard() {
             const grid = document.getElementById("quizGrid");
             grid.innerHTML = "";
-            document.getElementById("mainTitle").innerText = "NURSE-ED EVALUATION";
-            document.getElementById("subTitle").innerText = "ระบบคลังข้อสอบออนไลน์เรียลไทม์";
 
             for (let i = 1; i <= 10; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
@@ -247,7 +239,7 @@
                 if (localScore !== undefined) { 
                     cardClass += " opacity-90 border-green-200 bg-green-50/40 shadow-inner";
                     icon = "✅"; titleColor = "text-green-700";
-                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-700 bg-green-100 py-2.5 px-4 rounded-xl w-full select-none">คะแนนของคุณ: ${localScore} / ${displayCount} ข้อ</div>`;
+                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-700 bg-green-100 py-2.5 px-4 rounded-xl w-full select-none">ได้คะแนน: ${localScore} / ${displayCount} ข้อ</div>`;
                 } else if (isOpen) {
                     cardClass += " hover:-translate-y-2 hover:shadow-xl active-glow bg-white";
                     icon = "📝"; titleColor = "text-sky-800";
@@ -279,7 +271,7 @@
             document.getElementById("quizTitle").innerText = `ข้อสอบประเมินชุดที่ ${setNum}`;
 
             let questions = allQuestions.filter(q => q.set_number === setNum);
-            if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบฐานข้อมูลโจทย์ในระบบ", "warning");
+            if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบข้อมูลข้อสอบในแท็บ Questions", "warning");
 
             updateProgressBar(0, questions.length);
 
@@ -301,15 +293,15 @@
                 `;
             });
 
-            showView("quizView"); // เปลี่ยนมุมมองไปที่ห้องสอบ ล็อก view ไม่ให้โดนเด้งออก
+            showView("quizView"); 
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
 
         function checkProgress(total) {
             let answered = 0;
-            // นับจำนวนข้อที่พยาบาลกดเลือกคำตอบแล้วจริง ๆ
-            allQuestions.filter(q => q.set_number === currentSet).forEach(q => {
+            let currentQuestions = allQuestions.filter(q => q.set_number === currentSet);
+            currentQuestions.forEach(q => {
                 if(document.querySelector(`input[name="q_${q.question_no}"]:checked`)) answered++;
             });
             updateProgressBar(answered, total);
@@ -347,19 +339,27 @@
 
             Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
+            // ล็อกการ์ดผลลัพธ์ฝั่งเบราว์เซอร์ทันที ป้องกันการกดซ้ำซ้อน
             myDoneList[currentSet] = score;
             localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
 
             try {
+                // 🌟 ส่งเรียงตาม Parameter โครงสร้างคอลัมน์ A ถึง E ที่ถูกต้องของตาราง Submissions
                 await fetch(API_URL, {
                     method: "POST",
-                    body: JSON.stringify({ action: "submit_score", phone: currentUser.phone, set_number: currentSet, score, time_used })
+                    body: JSON.stringify({ 
+                        action: "submit_score", 
+                        phone: currentUser.phone, 
+                        set_number: currentSet, 
+                        score: score, 
+                        time_used: timeUsed 
+                    })
                 });
-                currentActiveView = "dashboardView"; // คืนค่าล็อกกลับหน้าหลัก
+                showView("dashboardView");
                 Swal.fire({ title: 'ส่งข้อสอบสำเร็จ!', text: `ชุดที่ ${currentSet} บันทึกเรียบร้อย (${score} คะแนน)`, icon: 'success' })
                 .then(() => fetchData());
             } catch (err) {
-                currentActiveView = "dashboardView";
+                showView("dashboardView");
                 fetchData();
             }
         }
@@ -497,7 +497,7 @@
         function logout() { localStorage.clear(); location.reload(); }
 
         function showView(viewId) {
-            currentActiveView = viewId; // บันทึกสถานะหน้าจอที่กำลังแสดงผล
+            currentActiveView = viewId; 
             ['loaderView', 'loginView', 'dashboardView', 'quizView', 'adminView'].forEach(id => {
                 document.getElementById(id).classList.add("hidden-view");
             });
