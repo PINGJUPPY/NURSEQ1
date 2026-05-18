@@ -12,12 +12,16 @@
 
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
+        
+        /* สไตล์มิติกะจกฝ้าฝังเลเยอร์ Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
+        
+        /* อนิเมชั่นเรืองแสงรอบการ์ดข้อสอบที่ปลดล็อค */
         .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
@@ -25,8 +29,17 @@
             100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
         }
         .hidden-view { display: none !important; }
-        .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* สไตล์วงกลมโหลดความสำเร็จแบบหมุนเรียบหรู */
+        .circle-loader {
+            width: 100px;
+            height: 100px;
+            border: 8px solid rgba(14, 165, 233, 0.1);
+            border-left-color: #0ea5e9;
+            border-radius: 50%;
+            animation: spinCircle 1s linear infinite;
+        }
+        @keyframes spinCircle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="flex flex-col text-gray-800">
@@ -51,10 +64,12 @@
 
     <main class="flex-grow container mx-auto px-4 py-8 relative">
         
-        <div id="loaderView" class="hidden-view grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div class="skeleton h-40 rounded-2xl"></div><div class="skeleton h-40 rounded-2xl"></div>
-            <div class="skeleton h-40 rounded-2xl"></div><div class="skeleton h-40 rounded-2xl"></div>
-            <div class="skeleton h-40 rounded-2xl"></div>
+        <div id="loaderView" class="hidden-view flex flex-col items-center justify-center h-96">
+            <div class="relative flex items-center justify-center">
+                <div class="circle-loader"></div>
+                <div id="loadPercentText" class="absolute text-xl font-bold text-sky-600">0%</div>
+            </div>
+            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังประมวลผลระบบความสำเร็จ 100% ...</p>
         </div>
 
         <div id="loginView" class="hidden-view max-w-md mx-auto glass-panel p-8 rounded-3xl animate__animated animate__zoomIn">
@@ -73,7 +88,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม</h2>
-                    <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรโดยอัตโนมัติ ทุกๆ 3 วินาที</p>
+                    <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรโดยอัตโนมัติแบบเรียลไทม์</p>
                 </div>
             </div>
             <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
@@ -141,23 +156,31 @@
         let allQuestions = [];
         let quizStatus = {};
         let allSubmissions = [];
-        let myDoneList = {}; // ข้อ 1, 2: เก็บคะแนนล็อกการ์ดถาวรแบบ Local
+        let myDoneList = {}; 
         
         let currentSet = 0;
         let startTime = 0;
         let timerInterval;
         let isAdminMode = false;
         let globalSyncInterval;
+        let currentActiveView = "loaderView"; // ตัวแปรล็อกสถานะหน้าปัจจุบัน
 
         document.addEventListener("DOMContentLoaded", () => {
             checkLocalUser();
-            // ข้อ 7: เริ่มลูบ Background Polling ดึงข้อมูลสถานะแบบเงียบ ๆ ทุกๆ 3 วินาที (วิทยากรกดเปิด ฝั่งนักเรียนจะขึ้นทันที)
-            fetchData();
-            globalSyncInterval = setInterval(fetchData, 3000);
-            
-            const select = document.getElementById("selectSetFilter");
-            for(let i = 1; i <= 10; i++) select.innerHTML += `<option value="${i}">ชุดประเมินที่ ${i}</option>`;
+            // รันอนิเมชั่นเปอร์เซ็นต์โหลดหน้าแรกเพื่อความสมูท
+            animateFakeLoader(0);
         });
+
+        function animateFakeLoader(pct) {
+            if(pct <= 100) {
+                document.getElementById("loadPercentText").innerText = `${pct}%`;
+                setTimeout(() => animateFakeLoader(pct + 4), 30);
+            } else {
+                fetchData().then(() => {
+                    globalSyncInterval = setInterval(fetchData, 3000);
+                });
+            }
+        }
 
         function checkLocalUser() {
             const saved = localStorage.getItem("nurse_exam_user");
@@ -166,7 +189,6 @@
                 document.getElementById("userNameDisplay").innerText = `คุณ ${currentUser.name} (${currentUser.department})`;
                 document.getElementById("userInfo").classList.remove("hidden-view");
                 
-                // โหลดคะแนนเดิมที่ทำสำเร็จแล้วมาล็อกสิทธิ์
                 const scores = localStorage.getItem(`done_scores_${currentUser.phone}`);
                 if(scores) myDoneList = JSON.parse(scores);
             }
@@ -187,7 +209,6 @@
                 quizStatus = dataS.quizStatus;
                 allSubmissions = dataS.submissions;
                 
-                // ดึงข้อมูลสิทธิ์ล็อกอินจากชีตมาแมปเสริมใน Local เผื่อกรณีเปลี่ยนเครื่อง
                 if(currentUser) {
                     allSubmissions.filter(s => s.user_id.toString().trim() === currentUser.phone.toString().trim()).forEach(s => {
                         myDoneList[s.set_number] = s.score;
@@ -195,9 +216,15 @@
                     localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
                 }
 
-                if (isAdminMode) { renderAdminPanel(); } 
-                else {
-                    if (currentUser) { renderDashboard(); } else { showView("loginView"); }
+                if (isAdminMode) { 
+                    renderAdminPanel(); 
+                } else {
+                    // 🌟 ข้อ 2: บั๊กเด้งหน้าต่างถูกแก้ตรงนี้ หากผู้สอบอยู่หน้าทำข้อสอบ (quizView) ระบบเบื้องหลังจะไม่สั่งรีเรนเดอร์หน้าหลักไปขัดจังหวะเด็ดขาด
+                    if (currentUser) { 
+                        if(currentActiveView !== "quizView") renderDashboard(); 
+                    } else { 
+                        showView("loginView"); 
+                    }
                 }
             } catch (err) { console.error("Sync Error:", err); }
         }
@@ -205,20 +232,22 @@
         function renderDashboard() {
             const grid = document.getElementById("quizGrid");
             grid.innerHTML = "";
+            document.getElementById("mainTitle").innerText = "NURSE-ED EVALUATION";
+            document.getElementById("subTitle").innerText = "ระบบคลังข้อสอบออนไลน์เรียลไทม์";
 
             for (let i = 1; i <= 10; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
-                let localScore = myDoneList[i]; // ข้อ 1, 2: ตรวจสอบคะแนนที่บันทึกล็อกไว้
+                let localScore = myDoneList[i]; 
                 let totalQ = allQuestions.filter(q => q.set_number === i).length;
                 let displayCount = totalQ === 0 ? "50" : totalQ;
 
                 let cardClass = "glass-panel p-5 rounded-2xl flex flex-col justify-between items-center text-center transition transform";
                 let icon, titleColor, btnHtml;
 
-                if (localScore !== undefined) { // ข้อ 2: ทำสำเร็จแสดงคะแนน ล็อกตายไม่ให้กดซ้ำ
+                if (localScore !== undefined) { 
                     cardClass += " opacity-90 border-green-200 bg-green-50/40 shadow-inner";
                     icon = "✅"; titleColor = "text-green-700";
-                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-700 bg-green-100 py-2.5 px-4 rounded-xl w-full select-none animate__animated animate__pulse">คะแนนของคุณ: ${localScore} / ${displayCount} ข้อ</div>`;
+                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-700 bg-green-100 py-2.5 px-4 rounded-xl w-full select-none">คะแนนของคุณ: ${localScore} / ${displayCount} ข้อ</div>`;
                 } else if (isOpen) {
                     cardClass += " hover:-translate-y-2 hover:shadow-xl active-glow bg-white";
                     icon = "📝"; titleColor = "text-sky-800";
@@ -252,7 +281,6 @@
             let questions = allQuestions.filter(q => q.set_number === setNum);
             if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบฐานข้อมูลโจทย์ในระบบ", "warning");
 
-            // ข้อ 5: เซ็ตค่า Progress Bar เริ่มต้น
             updateProgressBar(0, questions.length);
 
             questions.forEach((q, index) => {
@@ -266,24 +294,24 @@
                 }).join('');
 
                 container.innerHTML += `
-                    <div class="bg-white p-5 rounded-2xl border border-sky-100 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.03}s">
+                    <div class="bg-white p-5 rounded-2xl border border-sky-100 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.02}s">
                         <h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${q.question_text}</h4>
                         <div class="space-y-1">${optionsHtml}</div>
                     </div>
                 `;
             });
 
-            showView("quizView");
+            showView("quizView"); // เปลี่ยนมุมมองไปที่ห้องสอบ ล็อก view ไม่ให้โดนเด้งออก
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        // ข้อ 5: ฟังก์ชันคำนวณแถบเปอร์เซ็นต์ความสำเร็จเรียลไทม์ขณะทำข้อสอบ
         function checkProgress(total) {
             let answered = 0;
-            for(let i=1; i<=total; i++) {
-                if(document.querySelector(`input[name="q_${i}"]:checked`)) answered++;
-            }
+            // นับจำนวนข้อที่พยาบาลกดเลือกคำตอบแล้วจริง ๆ
+            allQuestions.filter(q => q.set_number === currentSet).forEach(q => {
+                if(document.querySelector(`input[name="q_${q.question_no}"]:checked`)) answered++;
+            });
             updateProgressBar(answered, total);
         }
 
@@ -317,9 +345,8 @@
             clearInterval(timerInterval);
             let timeUsed = Math.floor((Date.now() - startTime) / 1000);
 
-            Swal.fire({ title: 'กำลังบันทึกคะแนนเข้าฐานข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            // ข้อ 1, 2: ล็อกผลลัพธ์ลงเครื่องฝั่งผู้ใช้ทันที เพื่อไม่ให้สิทธิ์หลุดระหว่างส่งเครือข่าย
             myDoneList[currentSet] = score;
             localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
 
@@ -328,10 +355,11 @@
                     method: "POST",
                     body: JSON.stringify({ action: "submit_score", phone: currentUser.phone, set_number: currentSet, score, time_used })
                 });
+                currentActiveView = "dashboardView"; // คืนค่าล็อกกลับหน้าหลัก
                 Swal.fire({ title: 'ส่งข้อสอบสำเร็จ!', text: `ชุดที่ ${currentSet} บันทึกเรียบร้อย (${score} คะแนน)`, icon: 'success' })
                 .then(() => fetchData());
             } catch (err) {
-                // หากอินเทอร์เน็ตหลุดตอนบันทึก แต่อย่างน้อยระบบ Local ก็ล็อกการ์ดไว้แล้วปลอดภัย 100%
+                currentActiveView = "dashboardView";
                 fetchData();
             }
         }
@@ -381,7 +409,7 @@
             
             let setSorted = setFiltered.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
-                return a.time_used - b.time_used; // จัดอันดับ: คะแนนเท่ากัน ใครใช้วินาทีน้อยกว่าชนะ
+                return a.time_used - b.time_used; 
             });
 
             const setBody = document.getElementById("setLeaderboardBody");
@@ -421,7 +449,6 @@
             });
         }
 
-        // ข้อ 6: อนิเมชั่นปุ่มเปิดข้อสอบหมุนโหลดตอนคลิก
         async function toggleQuizStatus(setNum, openState) {
             const btn = document.getElementById(`btnToggle_${setNum}`);
             const text = document.getElementById(`btnText_${setNum}`);
@@ -436,7 +463,7 @@
                     method: "POST",
                     body: JSON.stringify({ action: "toggle_quiz", set_number: setNum, is_open: openState })
                 });
-                quizStatus[setNum] = openState; // บังคับเปลี่ยนสเตตัสในแอปทันทีเพื่อความเร็ว
+                quizStatus[setNum] = openState; 
                 setTimeout(fetchData, 400);
             } catch(err) {
                 console.error(err);
@@ -470,6 +497,7 @@
         function logout() { localStorage.clear(); location.reload(); }
 
         function showView(viewId) {
+            currentActiveView = viewId; // บันทึกสถานะหน้าจอที่กำลังแสดงผล
             ['loaderView', 'loginView', 'dashboardView', 'quizView', 'adminView'].forEach(id => {
                 document.getElementById(id).classList.add("hidden-view");
             });
