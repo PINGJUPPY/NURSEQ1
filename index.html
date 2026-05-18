@@ -12,27 +12,11 @@
 
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
         .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
-        }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); } 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); } }
         .hidden-view { display: none !important; }
-        .circle-loader {
-            width: 120px;
-            height: 120px;
-            border: 8px solid rgba(14, 165, 233, 0.1);
-            border-left-color: #0ea5e9;
-            border-radius: 50%;
-            animation: spinCircle 1s linear infinite;
-        }
+        .circle-loader { width: 120px; height: 120px; border: 8px solid rgba(14, 165, 233, 0.1); border-left-color: #0ea5e9; border-radius: 50%; animation: spinCircle 1s linear infinite; }
         @keyframes spinCircle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -57,13 +41,12 @@
     </header>
 
     <main class="flex-grow container mx-auto px-4 py-8 relative">
-        
         <div id="loaderView" class="hidden-view flex flex-col items-center justify-center h-96">
             <div class="relative flex items-center justify-center">
                 <div class="circle-loader"></div>
                 <div id="loadPercentText" class="absolute text-2xl font-bold text-sky-600">0%</div>
             </div>
-            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังซิงค์คลังข้อมูลเวอร์ชันล่าสุดแบบป้องกันแคชค้าง...</p>
+            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังซิงค์คลังข้อมูลและดึงประวัติการสอบเดิม...</p>
         </div>
 
         <div id="loginView" class="hidden-view max-w-md mx-auto glass-panel p-8 rounded-3xl animate__animated animate__zoomIn">
@@ -82,7 +65,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม</h2>
-                    <p class="text-xs text-gray-400">ระบบเชื่อมโยงคะแนนสะสมเดิมของคุณแบบเรียลไทม์ (Anti-Cache Mode)</p>
+                    <p class="text-xs text-gray-400">ระบบเชื่อมโยงคะแนนสะสมเดิมของคุณแบบเรียลไทม์</p>
                 </div>
             </div>
             <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6"></div>
@@ -195,16 +178,12 @@
                 currentUser = JSON.parse(saved);
                 document.getElementById("userNameDisplay").innerText = `คุณ ${currentUser.name} (${currentUser.department})`;
                 document.getElementById("userInfo").classList.remove("hidden-view");
-                
-                const scores = localStorage.getItem(`done_scores_${currentUser.phone}`);
-                if(scores) myDoneList = JSON.parse(scores);
             }
         }
 
         async function fetchData() {
             if(!isAdminMode && allQuestions.length === 0) showView("loaderView");
             try {
-                // 🌟 ข้อแก้ไขทำลายแคช (Cache Busting): แฝงรหัสเวลาลงท้ายลิงก์ เพื่อบีบให้ดึงข้อมูลอัปเดตใหม่ล่าสุดเสมอ
                 const antiCacheToken = `&_nocache=${new Date().getTime()}`;
 
                 if(allQuestions.length === 0) {
@@ -219,13 +198,15 @@
                 quizStatus = dataS.quizStatus;
                 allSubmissions = dataS.submissions;
                 
+                // 🌟 แก้ไขบั๊กตัดเลข 0: ใช้ Number() เทียบเบอร์โทรให้ชัวร์ 100% ว่าคือคนเดียวกัน
                 if(currentUser) {
-                    let matchingSubmissions = allSubmissions.filter(s => s.user_id.toString().trim() === currentUser.phone.toString().trim());
+                    const myPhoneNum = Number(currentUser.phone);
+                    let matchingSubmissions = allSubmissions.filter(s => Number(s.user_id) === myPhoneNum);
+                    
                     myDoneList = {}; 
                     matchingSubmissions.forEach(s => {
                         myDoneList[s.set_number] = s.score;
                     });
-                    localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
                 }
 
                 if (isAdminMode) { 
@@ -362,9 +343,6 @@
 
             Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            myDoneList[currentSet] = score;
-            localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
-
             try {
                 await fetch(API_URL, {
                     method: "POST",
@@ -489,7 +467,6 @@
             if(spinner) spinner.classList.remove("hidden-view");
 
             try {
-                // เพิ่มรหัสกันแคชในคำสั่งสลับปุ่มด้วย
                 const antiCacheToken = `&_nocache=${new Date().getTime()}`;
                 await fetch(API_URL, {
                     method: "POST",
@@ -512,18 +489,16 @@
             const dept = document.getElementById("inpDept").value.trim();
 
             if (!phone || !name) return Swal.fire("ข้อมูลไม่ครบ", "กรุณากรอกเบอร์โทรศัพท์และชื่อ", "warning");
-            Swal.fire({ title: 'กำลังเข้าสู่ระบบและเชื่อมฐานข้อมูลเรียลไทม์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            Swal.fire({ title: 'กำลังเข้าสู่ระบบและเชื่อมฐานข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             fetch(API_URL, {
                 method: "POST",
                 body: JSON.stringify({ action: "login", phone, name, position: pos, department: dept })
             }).then(res => res.json()).then(data => {
+                // เก็บสถานะเบอร์โทรดิบๆ ไว้
                 currentUser = { phone, name, position: pos, department: dept };
                 localStorage.setItem("nurse_exam_user", JSON.stringify(currentUser));
                 
-                myDoneList = {};
-                localStorage.removeItem(`done_scores_${phone}`);
-
                 Swal.close();
                 checkLocalUser();
                 fetchData();
