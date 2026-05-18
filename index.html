@@ -12,12 +12,16 @@
 
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
+        
+        /* สไตล์มิติกะจกฝ้าฝังเลเยอร์ Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
+        
+        /* อนิเมชั่นเรืองแสงรอบการ์ดข้อสอบที่ปลดล็อค */
         .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
         @keyframes pulseGlow {
             0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); }
@@ -26,7 +30,7 @@
         }
         .hidden-view { display: none !important; }
 
-        /* ข้อ 1: วงกลมความสำเร็จหมุน 100% สไตล์พยาบาล */
+        /* สไตล์วงกลมโหลดความสำเร็จแบบหมุนเรียบหรู */
         .circle-loader {
             width: 120px;
             height: 120px;
@@ -87,7 +91,7 @@
                     <p class="text-xs text-gray-400">ระบบจะอัปเดตสถานะเปิดข้อสอบจากวิทยากรให้แบบเรียลไทม์</p>
                 </div>
             </div>
-            <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
+            <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6"></div>
         </div>
 
         <div id="quizView" class="hidden-view max-w-3xl mx-auto animate__animated animate__fadeInRight">
@@ -120,8 +124,8 @@
                 <button onclick="exitAdmin()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-xl">กลับสู่หน้าผู้สอบ</button>
             </div>
             <div class="glass-panel p-6 rounded-3xl mb-8">
-                <h3 class="font-bold text-lg text-sky-800 mb-4">📢 ควบคุมการสตรีมข้อสอบ</h3>
-                <div id="adminToggles" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+                <h3 class="font-bold text-lg text-sky-800 mb-4">📢 ควบคุมการสตรีมข้อสอบ (เปิดสะสมเพิ่มทีละวิชาได้)</h3>
+                <div id="adminToggles" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1 glass-panel p-6 rounded-3xl flex flex-col">
@@ -148,6 +152,21 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwP_S-ABl42AFfSdOmQFX_rLHEMvK3hrBFbLgTvswP8SWuEAxQezOyotmoReN3r69N5Uw/exec";
         
+        // 🌟 เพิ่มคลังรายชื่อวิชาของโรงพยาบาลสะเดาทั้ง 11 ชุด
+        const QUIZ_NAMES = {
+            1: "แบบทดสอบการพยาบาลโรคหัวใจ",
+            2: "แบบทดสอบความรู้การดูแลบาดแผล",
+            3: "แบบทดสอบความรู้การพยาบาลกุมารเวชศาสตร์",
+            4: "แบบทดสอบการบริหารความเสี่ยงพยาบาลหอผู้ป่วยใน",
+            5: "แบบทดสอบจริยธรรมและกฎหมายงานผู้ป่วยนอก",
+            6: "แบบทดสอบพยาบาลวิชาชีพห้องทําแผลฉีดยาผู้ป่วยนอก",
+            7: "แบบทดสอบวิชาผดุงครรภ์",
+            8: "แบบทดสอบงานอุบัติเหตุฉุกเฉิน",
+            9: "แบบทดสอบจริยธรรมและกฎหมาย",
+            10: "แบบทดสอบการดูแลผู้ป่วยโรคไตของพยาบาลหอผู้ป่วยในรพช",
+            11: "แบบทดสอบพยาบาลวิชาชีพงานผู้ป่วยใน"
+        };
+
         let currentUser = null;
         let allQuestions = [];
         let quizStatus = {};
@@ -169,10 +188,10 @@
         function animateFakeLoader(pct) {
             if(pct <= 100) {
                 document.getElementById("loadPercentText").innerText = `${pct}%`;
-                setTimeout(() => animateFakeLoader(pct + 5), 25);
+                setTimeout(() => animateFakeLoader(pct + 5), 20);
             } else {
                 fetchData().then(() => {
-                    globalSyncInterval = setInterval(fetchData, 3000); // เริ่มลูบดึงข้อมูลออโต้
+                    globalSyncInterval = setInterval(fetchData, 3000); 
                 });
             }
         }
@@ -226,12 +245,16 @@
         function renderDashboard() {
             const grid = document.getElementById("quizGrid");
             grid.innerHTML = "";
+            document.getElementById("mainTitle").innerText = "NURSE-ED EVALUATION";
+            document.getElementById("subTitle").innerText = "ระบบคลังข้อสอบออนไลน์เรียลไทม์";
 
-            for (let i = 1; i <= 10; i++) {
+            // 🌟 ปรับลูปให้อ่านค่าแสดงผลถึงชุดที่ 11
+            for (let i = 1; i <= 11; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let localScore = myDoneList[i]; 
                 let totalQ = allQuestions.filter(q => q.set_number === i).length;
                 let displayCount = totalQ === 0 ? "50" : totalQ;
+                let titleText = QUIZ_NAMES[i] || `ชุดข้อสอบประเมินที่ ${i}`;
 
                 let cardClass = "glass-panel p-5 rounded-2xl flex flex-col justify-between items-center text-center transition transform";
                 let icon, titleColor, btnHtml;
@@ -252,9 +275,10 @@
 
                 grid.innerHTML += `
                     <div class="${cardClass}">
-                        <div>
+                        <div class="flex flex-col items-center">
                             <div class="text-4xl mb-2">${icon}</div>
-                            <h3 class="font-bold ${titleColor} text-lg">ชุดที่ ${i}</h3>
+                            <span class="text-xs font-bold text-sky-500 bg-sky-50 px-2 py-0.5 rounded-md mb-1">ชุดที่ ${i}</span>
+                            <h3 class="font-bold ${titleColor} text-sm line-clamp-2 h-10 px-1 mb-1">${titleText}</h3>
                             <p class="text-xs text-gray-400">จำนวนคำถาม ${displayCount} ข้อ</p>
                         </div>
                         <div class="w-full">${btnHtml}</div>
@@ -268,10 +292,12 @@
             currentSet = setNum;
             const container = document.getElementById("questionContainer");
             container.innerHTML = "";
-            document.getElementById("quizTitle").innerText = `ข้อสอบประเมินชุดที่ ${setNum}`;
+            
+            let titleText = QUIZ_NAMES[setNum] || `ชุดประเมินที่ ${setNum}`;
+            document.getElementById("quizTitle").innerText = titleText;
 
             let questions = allQuestions.filter(q => q.set_number === setNum);
-            if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบข้อมูลข้อสอบในแท็บ Questions", "warning");
+            if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบข้อมูลข้อสอบของวิชานี้ในระบบ", "warning");
 
             updateProgressBar(0, questions.length);
 
@@ -339,12 +365,10 @@
 
             Swal.fire({ title: 'กำลังบันทึกคะแนน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            // ล็อกการ์ดผลลัพธ์ฝั่งเบราว์เซอร์ทันที ป้องกันการกดซ้ำซ้อน
             myDoneList[currentSet] = score;
             localStorage.setItem(`done_scores_${currentUser.phone}`, JSON.stringify(myDoneList));
 
             try {
-                // 🌟 ส่งเรียงตาม Parameter โครงสร้างคอลัมน์ A ถึง E ที่ถูกต้องของตาราง Submissions
                 await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ 
@@ -356,7 +380,7 @@
                     })
                 });
                 showView("dashboardView");
-                Swal.fire({ title: 'ส่งข้อสอบสำเร็จ!', text: `ชุดที่ ${currentSet} บันทึกเรียบร้อย (${score} คะแนน)`, icon: 'success' })
+                Swal.fire({ title: 'ส่งข้อสอบสำเร็จ!', text: `บันทึกวิชาเรียบร้อยแล้ว ได้คะแนน (${score} คะแนน)`, icon: 'success' })
                 .then(() => fetchData());
             } catch (err) {
                 showView("dashboardView");
@@ -372,6 +396,12 @@
                     isAdminMode = true;
                     document.getElementById("userInfo").classList.add("hidden-view");
                     document.getElementById("mainTitle").innerText = "SPEAKER PANEL";
+                    
+                    // 🌟 เพิ่มตัวเลือกวิชาที่ 11 เข้า Dropdown แอดมิน
+                    const select = document.getElementById("selectSetFilter");
+                    select.innerHTML = "";
+                    for(let i = 1; i <= 11; i++) select.innerHTML += `<option value="${i}">ชุดที่ ${i}: ${QUIZ_NAMES[i]}</option>`;
+                    
                     fetchData();
                 } else if (result.value) { Swal.fire("ล้มเหลว", "รหัสผ่านไม่ถูกต้อง", "error"); }
             });
@@ -381,18 +411,23 @@
             const togglesContainer = document.getElementById("adminToggles");
             togglesContainer.innerHTML = "";
             
-            for(let i = 1; i <= 10; i++) {
+            // 🌟 ปรับปุ่มคุมสอบวิทยากรให้รองรับชุดที่ 11
+            for(let i = 1; i <= 11; i++) {
                 let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let btnColor = isOpen ? "bg-emerald-500 text-white shadow" : "bg-gray-200 text-gray-700 hover:bg-gray-300";
-                let statusText = isOpen ? "🔓 เปิดคลังอยู่" : "🔒 ปิดใช้งานอยู่";
+                let statusText = isOpen ? "🔓 เปิดคลังวิชาอยู่" : "🔒 ปิดใช้งานวิชา";
+                let nameText = QUIZ_NAMES[i] || `วิชาชุดที่ ${i}`;
                 
                 togglesContainer.innerHTML += `
-                    <div class="bg-white p-3 rounded-2xl border border-gray-100 flex flex-col justify-between items-center text-center shadow-sm">
-                        <span class="font-bold text-gray-700 text-sm">ชุดคำถามที่ ${i}</span>
-                        <span class="text-xs ${isOpen ? 'text-emerald-600 font-bold' : 'text-gray-400'} my-1">${statusText}</span>
-                        <button id="btnToggle_${i}" onclick="toggleQuizStatus(${i}, ${!isOpen})" class="w-full text-xs font-bold py-2 rounded-xl transition flex justify-center items-center ${btnColor}">
-                            <span id="btnText_${i}">${isOpen ? 'กดสั่งปิดการสอบ' : 'เปิดใช้งานข้อสอบ'}</span>
-                            <div id="btnSpinner_${i}" class="hidden-view animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent ml-2"></div>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col justify-between shadow-sm">
+                        <div>
+                            <span class="text-xs font-bold text-sky-500">ชุดที่ ${i}</span>
+                            <h4 class="font-bold text-gray-700 text-xs mb-1 line-clamp-1">${nameText}</h4>
+                            <p class="text-[11px] ${isOpen ? 'text-emerald-600 font-bold' : 'text-gray-400'} mb-2">${statusText}</p>
+                        </div>
+                        <button id="btnToggle_${i}" onclick="toggleQuizStatus(${i}, ${!isOpen})" class="w-full text-[11px] font-bold py-2 rounded-xl transition flex justify-center items-center ${btnColor}">
+                            <span id="btnText_${i}">${isOpen ? 'สั่งปิดห้ามเข้าสอบ' : 'เปิดปุ่มให้เข้าสอบ'}</span>
+                            <div id="btnSpinner_${i}" class="hidden-view animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent ml-2"></div>
                         </button>
                     </div>
                 `;
@@ -405,7 +440,7 @@
             const currentSelectedSet = parseInt(document.getElementById("selectSetFilter").value) || 1;
             let totalQCount = allQuestions.filter(q => q.set_number === currentSelectedSet).length || 50;
             let setFiltered = allSubmissions.filter(s => s.set_number === currentSelectedSet);
-            document.getElementById("txtSubCount").innerText = `ส่งคำตอบในชุดนี้แล้ว: ${setFiltered.length} คน (มีข้อสอบทั้งหมด ${totalQCount} ข้อ)`;
+            document.getElementById("txtSubCount").innerText = `ส่งคำตอบวิชานี้แล้ว: ${setFiltered.length} คน (มีข้อสอบทั้งหมด ${totalQCount} ข้อ)`;
             
             let setSorted = setFiltered.sort((a, b) => {
                 if (b.score !== a.score) return b.score - a.score;
@@ -420,7 +455,7 @@
                     <tr class="border-b border-gray-100 hover:bg-sky-50/50 transition text-xs sm:text-sm">
                         <td class="py-3 font-bold text-sky-800 text-center">${medal}${idx+1}</td>
                         <td class="py-3 font-semibold">${s.name}</td>
-                        <td class="py-3 text-gray-500">${s.position} <span class="text-sky-600 font-bold">[ตึก ${s.department}]</span></td>
+                        <td class="py-3 text-gray-500 text-xs">${s.position} <span class="text-sky-600 font-bold">[ตึก ${s.department}]</span></td>
                         <td class="py-3 font-bold text-emerald-600 text-center">${s.score} / ${totalQCount}</td>
                         <td class="py-3 text-right font-mono text-gray-600 pr-2">${s.time_used} วินาที</td>
                     </tr>
