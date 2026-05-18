@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินการอบรมออนไลน์ - Nurse Smart Exam</title>
+    <title>ระบบประเมินการอบรมออนไลน์ - พยาบาลโรงพยาบาลสะเดา</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,7 +13,7 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
         
-        /* Glassmorphism Effect */
+        /* สไตล์มิติกะจกฝ้าฝังเลเยอร์ Glassmorphism */
         .glass-panel {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
@@ -21,6 +21,7 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
         }
         
+        /* อนิเมชั่นเรืองแสงรอบการ์ดข้อสอบที่ปลดล็อค */
         .active-glow {
             animation: pulseGlow 2s infinite;
             border-color: #38bdf8;
@@ -32,7 +33,6 @@
             100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
         }
 
-        /* ซ่อนหน้าจอที่ไม่ได้ใช้งาน */
         .hidden-view { display: none !important; }
     </style>
 </head>
@@ -46,8 +46,8 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-lg font-bold text-sky-800 leading-tight">NURSE-ED EVALUATION</h1>
-                <p class="text-xs text-sky-600">ระบบคลังข้อสอบออนไลน์เรียลไทม์</p>
+                <h1 id="mainTitle" class="text-lg font-bold text-sky-800 leading-tight">NURSE-ED EVALUATION</h1>
+                <p id="subTitle" class="text-xs text-sky-600">ระบบคลังข้อสอบออนไลน์เรียลไทม์</p>
             </div>
         </div>
         <div id="userInfo" class="hidden-view text-right">
@@ -64,12 +64,13 @@
         </div>
 
         <div id="loginView" class="hidden-view max-w-md mx-auto glass-panel p-8 rounded-3xl animate__animated animate__zoomIn">
-            <h2 class="text-2xl font-bold text-center text-sky-800 mb-6">ลงทะเบียนเข้าสอบ</h2>
+            <h2 class="text-2xl font-bold text-center text-sky-800 mb-2">ลงทะเบียนเข้าสอบ</h2>
+            <p class="text-xs text-center text-gray-400 mb-6">หากเป็นคนเก่าที่เคยกรอกแล้ว ใส่แค่เบอร์โทรเดิมเพื่อทำต่อได้ทันที</p>
             <div class="space-y-4">
-                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (ใช้เข้าระบบซ้ำ)">
+                <input type="tel" id="inpPhone" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="เบอร์โทรศัพท์ (สิทธิ์หลักเข้าใช้ซ้ำ)">
                 <input type="text" id="inpName" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ชื่อ - นามสกุล">
                 <input type="text" id="inpPos" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="ตำแหน่ง (เช่น พยาบาลวิชาชีพ)">
-                <input type="text" id="inpDept" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="หน่วยงาน/ตึก">
+                <input type="text" id="inpDept" class="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-sky-400 outline-none" placeholder="หน่วยงาน/ตึก (เช่น ER / IPD)">
                 <button onclick="handleLogin()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 rounded-xl shadow-lg transition transform hover:-translate-y-1">
                     เข้าสู่ระบบ 🚀
                 </button>
@@ -78,154 +79,196 @@
 
         <div id="dashboardView" class="hidden-view animate__animated animate__fadeIn">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-800">คลังข้อสอบของคุณ</h2>
-                <button onclick="fetchData()" class="text-sm bg-white border border-gray-300 px-3 py-1 rounded-lg hover:bg-gray-50">🔄 รีเฟรชข้อมูล</button>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม</h2>
+                    <p class="text-xs text-gray-400">ชุดข้อสอบจะเปิดให้ทำสะสมเพิ่มขึ้นตามที่วิทยากรกำหนด</p>
+                </div>
+                <button onclick="fetchData()" class="text-sm bg-white border border-gray-300 px-4 py-2 rounded-xl hover:bg-gray-50 font-semibold shadow-sm">🔄 ดึงข้อมูลอัปเดต</button>
             </div>
             <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"></div>
         </div>
 
         <div id="quizView" class="hidden-view max-w-3xl mx-auto animate__animated animate__fadeInRight">
             <div class="glass-panel p-6 rounded-2xl mb-4 flex justify-between items-center border-l-4 border-sky-500">
-                <h2 id="quizTitle" class="text-xl font-bold text-sky-800">ชุดข้อสอบที่ X</h2>
+                <h2 id="quizTitle" class="text-xl font-bold text-sky-800">กำลังดาวน์โหลดชุดคำถาม...</h2>
                 <div class="text-right">
-                    <p class="text-xs text-gray-500">เวลาที่ใช้</p>
+                    <p class="text-xs text-gray-500 font-semibold">เวลาที่ใช้ทำ</p>
                     <p id="timerDisplay" class="text-lg font-mono font-bold text-red-500">00:00</p>
                 </div>
             </div>
-            <div id="questionContainer" class="space-y-6 mb-8">
-                </div>
-            <button onclick="submitQuiz()" class="w-full bg-green-500 hover:bg-green-600 text-white text-lg font-bold py-4 rounded-xl shadow-lg transition">
-                ส่งคำตอบ ✅
+            <div id="questionContainer" class="space-y-6 mb-8"></div>
+            <button onclick="submitQuiz()" class="w-full bg-green-500 hover:bg-green-600 text-white text-lg font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95">
+                ส่งคำตอบและบันทึกคะแนน ✅
             </button>
+        </div>
+
+        <div id="adminView" class="hidden-view animate__animated animate__fadeIn">
+            <div class="flex justify-between items-center mb-6 border-b border-sky-100 pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-sky-900">แผงควบคุมวิทยากร (Speaker Management)</h2>
+                    <p class="text-sm text-gray-500">เปิด-ปิดสวิตช์ข้อสอบสะสม และเฝ้าตรวจสอบผลคะแนนสดเรียลไทม์</p>
+                </div>
+                <button onclick="exitAdmin()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-5 rounded-xl shadow">กลับสู่หน้าผู้สอบ</button>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl mb-8">
+                <h3 class="font-bold text-lg text-sky-800 mb-4">📢 ควบคุมการสตรีมข้อสอบ (เปิดสะสมย้อนหลังให้ผู้เรียนทำตามทันได้)</h3>
+                <div id="adminToggles" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 glass-panel p-6 rounded-3xl flex flex-col">
+                    <h3 class="font-bold text-lg text-emerald-800 mb-2">🏆 บอร์ดสรุปคะแนนรวมสูงสุด</h3>
+                    <p class="text-xs text-gray-400 mb-4">วัดผลรวมคะแนนดิบ 50 ข้อ (ถ้าคะแนนเท่ากัน ใครส่งชุดล่าสุดเสร็จก่อนชนะ)</p>
+                    <div class="overflow-y-auto max-h-[500px] flex-grow">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-500 font-bold">
+                                    <th class="pb-2">อันดับ</th>
+                                    <th class="pb-2">รายชื่อพยาบาล</th>
+                                    <th class="pb-2 text-right">คะแนนรวม</th>
+                                </tr>
+                            </thead>
+                            <tbody id="totalLeaderboardBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 glass-panel p-6 rounded-3xl flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-bold text-lg text-sky-800">📊 ตารางสรุปอันดับความเร็วรายชุด</h3>
+                        <select id="selectSetFilter" onchange="renderAdminLeaderboards()" class="p-2 bg-white border border-gray-300 rounded-xl outline-none text-sm focus:ring-2 focus:ring-sky-400 font-semibold cursor-pointer">
+                            </select>
+                    </div>
+                    <div class="mb-4 text-xs font-semibold text-sky-600 bg-sky-50 py-1.5 px-3 rounded-lg inline-block self-start" id="txtSubCount">จำนวนผู้ส่งคำตอบในชุดนี้: 0 คน</div>
+                    <div class="overflow-y-auto max-h-[500px] flex-grow">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-200 text-gray-500 font-bold">
+                                    <th class="pb-2">อันดับ</th>
+                                    <th class="pb-2">ชื่อ-นามสกุล</th>
+                                    <th class="pb-2">สังกัดตำแหน่ง/หน่วยงาน</th>
+                                    <th class="pb-2 text-center">คะแนนที่ได้</th>
+                                    <th class="pb-2 text-right">เวลาที่ใช้</th>
+                                </tr>
+                            </thead>
+                            <tbody id="setLeaderboardBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </main>
 
-    <footer class="text-center p-4 text-xs text-gray-500 mt-auto">
-        © 2026 Nurse-Ed System | 
-        <button onclick="openAdminLogin()" class="hover:text-sky-500 underline">สำหรับวิทยากร</button>
+    <footer class="text-center p-4 text-xs text-gray-400 bg-white/40 border-t border-sky-50/50 mt-auto shadow-inner">
+        © Platform Development พท.ทศพร คงสุขนิรันดร์  | โรงพยาบาลสะเดา | 
+        <button onclick="openAdminLogin()" class="hover:text-sky-500 font-bold underline text-sky-600 ml-1">สำหรับวิทยากร (เข้าสู่แผงควบคุม)</button>
     </footer>
 
     <script>
-        // URL ของ Google Apps Script ที่คุณให้มา
+        // ลิงก์เชื่อมโยงไปยัง Google Apps Script Web App ของคุณ
         const API_URL = "https://script.google.com/macros/s/AKfycbwP_S-ABl42AFfSdOmQFX_rLHEMvK3hrBFbLgTvswP8SWuEAxQezOyotmoReN3r69N5Uw/exec";
         
         let currentUser = null;
         let allQuestions = [];
         let quizStatus = {};
+        let allSubmissions = [];
         let mySubmissions = [];
         
         let currentSet = 0;
         let startTime = 0;
         let timerInterval;
+        let isAdminMode = false;
+        let adminRefreshInterval;
 
-        // เมื่อหน้าเว็บโหลดเสร็จ
+        // เริ่มต้นรันฟังก์ชันเมื่อโหลดเว็บหน้าแรก
         document.addEventListener("DOMContentLoaded", () => {
             checkLocalUser();
             fetchData();
+            
+            // สร้างเมนูสลับดูข้อมูลชุดการสอบหลังบ้านของแอดมิน
+            const select = document.getElementById("selectSetFilter");
+            for(let i = 1; i <= 10; i++) {
+                select.innerHTML += `<option value="${i}">ค้นหาข้อมูลชุดประเมินที่ ${i}</option>`;
+            }
         });
 
-        // 1. ตรวจสอบการล็อกอินจาก Local Storage
+        // ดึงความจำของผู้สอบเดิมที่เคยล็อกอิน
         function checkLocalUser() {
             const saved = localStorage.getItem("nurse_exam_user");
             if (saved) {
                 currentUser = JSON.parse(saved);
-                document.getElementById("userNameDisplay").innerText = `${currentUser.name} (${currentUser.department})`;
+                document.getElementById("userNameDisplay").innerText = `คุณ ${currentUser.name} (${currentUser.department})`;
                 document.getElementById("userInfo").classList.remove("hidden-view");
             }
         }
 
-        // 2. ดึงข้อมูลข้อสอบและสถานะจาก Google Sheets
+        // ดึงข้อมูลหลักจาก API หลังบ้าน Google Sheets
         async function fetchData() {
-            showView("loaderView");
+            if(!isAdminMode) showView("loaderView");
             try {
-                // ดึงคำถาม
-                let resQ = await fetch(`${API_URL}?action=get_questions`);
-                let dataQ = await resQ.json();
-                allQuestions = dataQ.data;
+                // 1. ดึงชุดข้อสอบทั้งหมด (ทำเฉพาะครั้งแรกเพื่อประหยัดสปีดเน็ต)
+                if(allQuestions.length === 0) {
+                    let resQ = await fetch(`${API_URL}?action=get_questions`);
+                    let dataQ = await resQ.json();
+                    allQuestions = dataQ.data;
+                }
 
-                // ดึงสถานะและคะแนน
+                // 2. ดึงสถานะเปิดข้อสอบและตารางคะแนนดิบ
                 let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard`);
                 let dataS = await resS.json();
                 quizStatus = dataS.quizStatus;
+                allSubmissions = dataS.submissions;
                 
-                if (currentUser) {
-                    // กรองเฉพาะประวัติการสอบของตัวเอง
-                    mySubmissions = dataS.submissions.filter(s => s.user_id === currentUser.phone);
-                    renderDashboard();
+                if (isAdminMode) {
+                    renderAdminPanel();
                 } else {
-                    showView("loginView");
+                    if (currentUser) {
+                        mySubmissions = allSubmissions.filter(s => s.user_id.toString().trim() === currentUser.phone.toString().trim());
+                        renderDashboard();
+                    } else {
+                        showView("loginView");
+                    }
                 }
             } catch (err) {
-                Swal.fire("ข้อผิดพลาด", "ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณารีเฟรชหน้าเว็บ", "error");
+                console.error("Fetch Data Error:", err);
             }
         }
 
-        // 3. ระบบล็อกอิน
-        async function handleLogin() {
-            const phone = document.getElementById("inpPhone").value.trim();
-            const name = document.getElementById("inpName").value.trim();
-            const pos = document.getElementById("inpPos").value.trim();
-            const dept = document.getElementById("inpDept").value.trim();
-
-            if (!phone || !name) return Swal.fire("แจ้งเตือน", "กรุณากรอกเบอร์โทรศัพท์และชื่อ", "warning");
-
-            Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            const payload = { action: "login", phone, name, position: pos, department: dept };
-            
-            try {
-                let res = await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                let data = await res.json();
-                
-                if (data.status === "success") {
-                    currentUser = data.isNew ? payload : data.user;
-                    localStorage.setItem("nurse_exam_user", JSON.stringify(currentUser));
-                    
-                    Swal.close();
-                    document.getElementById("userNameDisplay").innerText = `${currentUser.name} (${currentUser.department})`;
-                    document.getElementById("userInfo").classList.remove("hidden-view");
-                    fetchData(); // โหลดข้อมูลใหม่เพื่อแสดง Dashboard
-                }
-            } catch (err) {
-                Swal.fire("ข้อผิดพลาด", "การเชื่อมต่อล้มเหลว", "error");
-            }
-        }
-
-        // 4. วาดหน้าต่าง Dashboard
+        // แสดงผลหน้าหลักคลังข้อสอบ 10 ชุดของผู้สอบ
         function renderDashboard() {
             const grid = document.getElementById("quizGrid");
             grid.innerHTML = "";
+            document.getElementById("mainTitle").innerText = "NURSE-ED EVALUATION";
+            document.getElementById("subTitle").innerText = "ระบบคลังข้อสอบออนไลน์เรียลไทม์";
 
             for (let i = 1; i <= 10; i++) {
-                let isOpen = quizStatus[i] === true;
+                let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
                 let isDone = mySubmissions.find(s => s.set_number === i);
                 
                 let cardClass = "glass-panel p-5 rounded-2xl flex flex-col items-center text-center transition transform";
                 let icon, titleColor, btnHtml;
 
                 if (isDone) {
-                    cardClass += " opacity-90 border-green-200";
-                    icon = "✅";
-                    titleColor = "text-green-700";
-                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-600 bg-green-100 py-2 px-4 rounded-xl w-full">ได้คะแนน ${isDone.score} คะแนน</div>`;
+                    cardClass += " opacity-90 border-green-200 bg-green-50/30";
+                    icon = "✅"; titleColor = "text-green-700";
+                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-600 bg-green-100 py-2 px-4 rounded-xl w-full">ทำเสร็จแล้ว (${isDone.score} คะแนน)</div>`;
                 } else if (isOpen) {
-                    cardClass += " hover:-translate-y-2 hover:shadow-xl active-glow cursor-pointer";
-                    icon = "📝";
-                    titleColor = "text-sky-800";
-                    btnHtml = `<button onclick="startQuiz(${i})" class="mt-4 w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold py-2 rounded-xl shadow">เริ่มทำข้อสอบ</button>`;
+                    cardClass += " hover:-translate-y-2 hover:shadow-xl active-glow";
+                    icon = "📝"; titleColor = "text-sky-800";
+                    btnHtml = `<button onclick="startQuiz(${i})" class="mt-4 w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold py-2 rounded-xl shadow transform active:scale-95 transition">เริ่มทำข้อสอบ</button>`;
                 } else {
-                    cardClass += " opacity-60 bg-gray-50";
-                    icon = "🔒";
-                    titleColor = "text-gray-500";
-                    btnHtml = `<button disabled class="mt-4 w-full bg-gray-200 text-gray-500 font-bold py-2 rounded-xl">รอวิทยากรเปิด</button>`;
+                    cardClass += " opacity-50 bg-gray-100/70 cursor-not-allowed";
+                    icon = "🔒"; titleColor = "text-gray-400";
+                    btnHtml = `<button disabled class="mt-4 w-full bg-gray-200 text-gray-400 font-bold py-2 rounded-xl">รอวิทยากรเปิด</button>`;
                 }
 
                 grid.innerHTML += `
                     <div class="${cardClass}">
                         <div class="text-4xl mb-2">${icon}</div>
                         <h3 class="font-bold ${titleColor} text-lg">ชุดที่ ${i}</h3>
-                        <p class="text-xs text-gray-500">5 ข้อ (5 คะแนน)</p>
+                        <p class="text-xs text-gray-400">จำนวนคำถาม 5 ข้อ</p>
                         ${btnHtml}
                     </div>
                 `;
@@ -233,130 +276,245 @@
             showView("dashboardView");
         }
 
-        // 5. เริ่มทำข้อสอบ
+        // เริ่มโหลดและเรนเดอร์คำถาม 4 ตัวเลือกในชุดที่เลือก
         function startQuiz(setNum) {
             currentSet = setNum;
             const container = document.getElementById("questionContainer");
             container.innerHTML = "";
-            document.getElementById("quizTitle").innerText = `กำลังทำชุดข้อสอบที่ ${setNum}`;
+            document.getElementById("quizTitle").innerText = `ข้อสอบประเมินชุดที่ ${setNum}`;
 
-            // ดึงข้อสอบเฉพาะชุดนี้
             let questions = allQuestions.filter(q => q.set_number === setNum);
-            
-            if(questions.length === 0) {
-                return Swal.fire("แจ้งเตือน", "ยังไม่มีข้อมูลข้อสอบในระบบ", "warning");
-            }
+            if(questions.length === 0) return Swal.fire("ขออภัย", "ไม่พบฐานข้อมูลโจทย์ในแท็บข้อสอบ", "warning");
 
             questions.forEach((q, index) => {
                 let optionsHtml = q.choices.map((choice, cIndex) => {
                     let letter = ['ก', 'ข', 'ค', 'ง'][cIndex];
                     return `
-                    <label class="flex items-start p-3 bg-white border border-sky-100 rounded-xl cursor-pointer hover:bg-sky-50 transition">
+                    <label class="flex items-start p-3 bg-white border border-sky-100 rounded-xl cursor-pointer hover:bg-sky-50/50 transition mb-2 select-none">
                         <input type="radio" name="q_${q.question_no}" value="${letter}" class="mt-1 mr-3 w-4 h-4 text-sky-500 focus:ring-sky-400">
                         <span class="text-sm text-gray-700 leading-relaxed">${choice}</span>
                     </label>`;
                 }).join('');
 
                 container.innerHTML += `
-                    <div class="bg-white/60 p-5 rounded-2xl border border-white shadow-sm">
+                    <div class="bg-white/70 p-5 rounded-2xl border border-white shadow-sm shadow-sky-100/40">
                         <h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${q.question_text}</h4>
-                        <div class="space-y-2">${optionsHtml}</div>
+                        <div class="space-y-1">${optionsHtml}</div>
                     </div>
                 `;
             });
 
             showView("quizView");
-            
-            // เริ่มจับเวลา
             startTime = Date.now();
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        // 6. อัปเดตเวลาบนหน้าจอ
-        function updateTimer() {
-            let diff = Math.floor((Date.now() - startTime) / 1000);
-            let m = Math.floor(diff / 60).toString().padStart(2, '0');
-            let s = (diff % 60).toString().padStart(2, '0');
-            document.getElementById("timerDisplay").innerText = `${m}:${s}`;
-        }
-
-        // 7. ส่งข้อสอบ
+        // ตรวจสอบและบันทึกคะแนนคำตอบส่งขึ้นสเปรดชีต
         async function submitQuiz() {
             let questions = allQuestions.filter(q => q.set_number === currentSet);
             let score = 0;
             let answeredAll = true;
 
-            // ตรวจคำตอบ
             questions.forEach(q => {
                 let selected = document.querySelector(`input[name="q_${q.question_no}"]:checked`);
                 if (!selected) answeredAll = false;
                 else if (selected.value === q.answer) score++;
             });
 
-            if (!answeredAll) {
-                return Swal.fire("ยังทำไม่ครบ", "กรุณาตอบคำถามให้ครบทุกข้อก่อนส่งครับ", "warning");
-            }
+            if (!answeredAll) return Swal.fire("คำเตือน", "กรุณาตอบคำถามพยาบาลให้ครบทุกข้อก่อนกดส่งครับ", "warning");
 
             clearInterval(timerInterval);
             let timeUsed = Math.floor((Date.now() - startTime) / 1000);
 
-            Swal.fire({ title: 'กำลังตรวจข้อสอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-            // ส่งคะแนนไปเซฟ
-            const payload = {
-                action: "submit_score",
-                phone: currentUser.phone,
-                set_number: currentSet,
-                score: score,
-                time_used: timeUsed
-            };
+            Swal.fire({ title: 'กำลังประมวลผลคำตอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             try {
-                await fetch(API_URL, { method: "POST", body: JSON.stringify(payload) });
-                Swal.fire({
-                    title: 'ยอดเยี่ยม!',
-                    text: `คุณได้ ${score} / ${questions.length} คะแนน\nใช้เวลาไป ${timeUsed} วินาที`,
-                    icon: 'success',
-                    confirmButtonText: 'กลับไปหน้าหลัก',
-                    confirmButtonColor: '#0ea5e9'
-                }).then(() => {
-                    fetchData(); // โหลดข้อมูลใหม่เพื่ออัปเดตหน้า Dashboard
+                await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "submit_score", phone: currentUser.phone, set_number: currentSet, score, time_used: timeUsed })
                 });
+                Swal.fire({
+                    title: 'ส่งคำตอบเรียบร้อย!',
+                    text: `คุณได้คะแนน ${score} / ${questions.length} คะแนน ในชุดนี้`,
+                    icon: 'success',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#0ea5e9'
+                }).then(() => fetchData());
             } catch (err) {
-                Swal.fire("ข้อผิดพลาด", "ส่งคำตอบไม่สำเร็จ กรุณาลองใหม่", "error");
+                Swal.fire("ผิดพลาด", "ระบบไม่สามารถบันทึกคะแนนได้ กรุณากดส่งใหม่อีกครั้ง", "error");
             }
         }
 
-        // 8. ป็อปอัปวิทยากร (Admin Login)
+        // ==========================================
+        // 👑 ส่วนงานระบบของวิทยากร (ADMIN PANEL)
+        // ==========================================
+        
         function openAdminLogin() {
             Swal.fire({
-                title: 'รหัสผ่านวิทยากร',
+                title: 'ยืนยันตัวตนวิทยากร',
                 input: 'password',
-                inputAttributes: { autocapitalize: 'off' },
+                inputPlaceholder: 'กรอกรหัสผ่านควบคุมห้องเรียน',
                 showCancelButton: true,
-                confirmButtonText: 'เข้าสู่ระบบ',
-                cancelButtonText: 'ยกเลิก',
-                confirmButtonColor: '#0ea5e9'
+                confirmButtonText: 'ล็อกอินแอดมิน',
+                confirmButtonColor: '#0ea5e9',
+                cancelButtonText: 'ยกเลิก'
             }).then((result) => {
                 if (result.value === '0000') {
-                    // ถ้ารหัสผ่านถูก จะเปิดหน้าต่างแผงควบคุมวิทยากร
-                    // Note: ฟีเจอร์ Admin Dashboard สามารถเขียนเสริมต่อจากตรงนี้ได้
-                    Swal.fire("ยินดีต้อนรับ", "เข้าสู่โหมดวิทยากรสำเร็จ", "success");
+                    isAdminMode = true;
+                    document.getElementById("userInfo").classList.add("hidden-view");
+                    document.getElementById("mainTitle").innerText = "SPEAKER MANAGEMENT MODE";
+                    document.getElementById("subTitle").innerText = "หน้าต่างผู้ควบคุมการบรรยายและสรุปผลคะแนนสด";
+                    
+                    fetchData();
+                    // ตั้งเซ็ตดึงบอร์ดคะแนนสดแบบอัตโนมัติ (Live Polling ทุกๆ 4 วินาที)
+                    adminRefreshInterval = setInterval(fetchData, 4000);
                 } else if (result.value) {
-                    Swal.fire("รหัสผ่านผิด", "", "error");
+                    Swal.fire("ล็อกอินล้มเหลว", "รหัสผ่านวิทยากรไม่ถูกต้อง", "error");
                 }
             });
         }
 
-        // Utility: ออกจากระบบ
+        function renderAdminPanel() {
+            // สร้างแผงควบคุมสวิตช์เปิดข้อสอบสะสม 1-10 ชุด
+            const togglesContainer = document.getElementById("adminToggles");
+            togglesContainer.innerHTML = "";
+            
+            for(let i = 1; i <= 10; i++) {
+                let isOpen = quizStatus[i] === true || quizStatus[i] === "true";
+                let btnColor = isOpen ? "bg-emerald-500 text-white shadow-md shadow-emerald-100" : "bg-gray-200 text-gray-700 hover:bg-gray-300";
+                let statusText = isOpen ? "🔓 ผู้สอบกำลังเข้าทำ" : "🔒 ยังไม่เปิดคลัง";
+                
+                togglesContainer.innerHTML += `
+                    <div class="bg-white p-3 rounded-2xl border border-gray-100 flex flex-col justify-between items-center text-center shadow-sm">
+                        <span class="font-bold text-gray-700 text-sm">ชุดคำถามที่ ${i}</span>
+                        <span class="text-xs ${isOpen ? 'text-emerald-600 font-bold' : 'text-gray-400'} my-1">${statusText}</span>
+                        <button onclick="toggleQuizStatus(${i}, ${!isOpen})" class="w-full text-xs font-bold py-2 rounded-xl transition ${btnColor}">
+                            ${isOpen ? 'กดสั่งปิดการสอบ' : 'เปิดใช้งานข้อสอบ'}
+                        </button>
+                    </div>
+                `;
+            }
+
+            renderAdminLeaderboards();
+            showView("adminView");
+        }
+
+        // ประมวลผลลีดเดอร์บอร์ดคัดแยกตามเงื่อนไขอย่างแม่นยำ
+        function renderAdminLeaderboards() {
+            const currentSelectedSet = parseInt(document.getElementById("selectSetFilter").value);
+            
+            // 🌟 1. ลีดเดอร์บอร์ดรายชุด: เรียงตามคะแนนสูงสุดไปต่ำสุด -> ส่งก่อน (ความเร็วกว่า) ขึ้นอันดับแรก
+            let setFiltered = allSubmissions.filter(s => s.set_number === currentSelectedSet);
+            document.getElementById("txtSubCount").innerText = `จำนวนผู้ส่งคำตอบในชุดนี้: ${setFiltered.length} คน`;
+            
+            let setSorted = setFiltered.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return new Date(a.submitted_at) - new Date(b.submitted_at);
+            });
+
+            const setBody = document.getElementById("setLeaderboardBody");
+            setBody.innerHTML = "";
+            setSorted.forEach((s, idx) => {
+                let medal = idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+                setBody.innerHTML += `
+                    <tr class="border-b border-gray-100 hover:bg-sky-50/50 transition">
+                        <td class="py-3 font-bold text-sky-800 text-center">${medal}${idx+1}</td>
+                        <td class="py-3 font-semibold">${s.name}</td>
+                        <td class="py-3 text-gray-500 text-xs">${s.position} <span class="text-sky-600 font-bold">[ตึก ${s.department}]</span></td>
+                        <td class="py-3 font-bold text-emerald-600 text-center">${s.score} / 5</td>
+                        <td class="py-3 text-right font-mono text-gray-600 pr-2">${s.time_used} วินาที</td>
+                    </tr>
+                `;
+            });
+
+            // 🌟 2. ลีดเดอร์บอร์ดผลรวม 10 ชุดสะสม: เรียงคะแนนรวมมากไปน้อย -> สปีดความเร็วใครปิดชุดล่าสุดก่อนชนะ
+            let totalMap = {};
+            allSubmissions.forEach(s => {
+                const uid = s.user_id.toString().trim();
+                if (!totalMap[uid]) {
+                    totalMap[uid] = { name: s.name, dept: s.department, total_score: 0, last_submit: new Date(0) };
+                }
+                totalMap[uid].total_score += s.score;
+                let submitTime = new Date(s.submitted_at);
+                if (submitTime > totalMap[uid].last_submit) {
+                    totalMap[uid].last_submit = submitTime;
+                }
+            });
+
+            let totalSorted = Object.values(totalMap).sort((a, b) => {
+                if (b.total_score !== a.total_score) return b.total_score - a.total_score;
+                return a.last_submit - b.last_submit;
+            });
+
+            const totalBody = document.getElementById("totalLeaderboardBody");
+            totalBody.innerHTML = "";
+            totalSorted.forEach((t, idx) => {
+                let crown = idx === 0 ? "👑 " : idx === 1 ? "🥈 " : idx === 2 ? "🥉 " : "";
+                totalBody.innerHTML += `
+                    <tr class="border-b border-gray-100 hover:bg-emerald-50/30">
+                        <td class="py-2.5 font-bold text-amber-600 text-center">${crown}${idx+1}</td>
+                        <td class="py-2.5 text-xs font-medium">${t.name}<br><span class="text-gray-400">สังกัด ${t.dept}</span></td>
+                        <td class="py-2.5 text-right font-bold text-emerald-600 pr-2">${t.total_score} คะแนน</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ยิงคำสั่ง POST สลับสวิตช์ข้ามฝั่งไปที่ Google Sheets
+        async function toggleQuizStatus(setNum, openState) {
+            try {
+                let res = await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "toggle_quiz", password: "0000", set_number: setNum, is_open: openState })
+                });
+                let data = await res.json();
+                if(data.status === "success") {
+                    fetchData(); 
+                }
+            } catch(err) {
+                console.error(err);
+            }
+        }
+
+        function exitAdmin() {
+            isAdminMode = false;
+            clearInterval(adminRefreshInterval); // ปิดลูปส่งคำขอเรียลไทม์เพื่อประหยัดงาน
+            checkLocalUser();
+            fetchData();
+        }
+
+        function handleLogin() {
+            const phone = document.getElementById("inpPhone").value.trim();
+            const name = document.getElementById("inpName").value.trim();
+            const pos = document.getElementById("inpPos").value.trim();
+            const dept = document.getElementById("inpDept").value.trim();
+
+            if (!phone || !name) return Swal.fire("ข้อมูลไม่ครบ", "กรุณากรอกเบอร์โทรศัพท์และชื่อเต็ม", "warning");
+
+            Swal.fire({ title: 'กำลังลงทะเบียนสิทธิ์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const payload = { action: "login", phone, name, position: pos, department: dept };
+            
+            fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    currentUser = data.isNew ? payload : data.user;
+                    localStorage.setItem("nurse_exam_user", JSON.stringify(currentUser));
+                    Swal.close();
+                    checkLocalUser();
+                    fetchData();
+                }
+            }).catch(() => Swal.fire("ผิดพลาด", "การเชื่อมต่อฐานข้อมูลล้มเหลว", "error"));
+        }
+
         function logout() {
             localStorage.removeItem("nurse_exam_user");
             location.reload();
         }
 
-        // Utility: สลับหน้าจอ
         function showView(viewId) {
-            ['loaderView', 'loginView', 'dashboardView', 'quizView'].forEach(id => {
+            ['loaderView', 'loginView', 'dashboardView', 'quizView', 'adminView'].forEach(id => {
                 document.getElementById(id).classList.add("hidden-view");
             });
             document.getElementById(viewId).classList.remove("hidden-view");
