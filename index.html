@@ -182,18 +182,22 @@
             }
         }
 
-        // 🌟 ปรับปรุงกลไกแก้ปัญหาโหลดช้าและปลดบล็อก CORS Error ด้วยการกำหนดโหมดเรียกรับข้อมูลให้ถูกต้อง
+        // 🌟 อัปเดตกลไกข้ามผ่านเงื่อนไข CORS ของ Google Redirect
         async function fetchData() {
             if(!isAdminMode && allQuestions.length === 0) showView("loaderView");
             try {
+                // ดึงข้อมูลโจทย์ข้อสอบ
                 if(allQuestions.length === 0) {
-                    let resQ = await fetch(`${API_URL}?action=get_questions`, { method: 'GET', mode: 'cors' });
-                    let dataQ = await resQ.json();
+                    let resQ = await fetch(`${API_URL}?action=get_questions`);
+                    let textQ = await resQ.text(); // อ่านเป็น Text ก่อนเพื่อเลี่ยงปัญหาหัวข้อสิทธิ์หลุดหาย
+                    let dataQ = JSON.parse(textQ);
                     allQuestions = dataQ.data;
                 }
 
-                let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard`, { method: 'GET', mode: 'cors' });
-                let dataS = await resS.json();
+                // ดึงข้อมูลสถานะและบอร์ดคะแนนสะสม
+                let resS = await fetch(`${API_URL}?action=get_status_and_leaderboard`);
+                let textS = await resS.text();
+                let dataS = JSON.parse(textS);
                 quizStatus = dataS.quizStatus;
                 allSubmissions = dataS.submissions;
                 
@@ -208,7 +212,7 @@
                     }
                 }
             } catch (err) {
-                console.error("Fetch Error:", err);
+                console.error("Fetch Data Error:", err);
             }
         }
 
@@ -285,7 +289,7 @@
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        function submitQuiz() {
+        async function submitQuiz() {
             let questions = allQuestions.filter(q => q.set_number === currentSet);
             let score = 0;
             let answeredAll = true;
@@ -303,15 +307,16 @@
 
             Swal.fire({ title: 'กำลังประมวลผลคำตอบ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            fetch(API_URL, {
-                method: "POST",
-                mode: "no-cors", // ป้องกันเบราว์เซอร์ตัดการเชื่อมต่อขณะบันทึกข้อมูลผลลัพธ์
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "submit_score", phone: currentUser.phone, set_number: currentSet, score, time_used: timeUsed })
-            }).then(() => {
-                Swal.fire({ title: 'ส่งคำตอบเรียบร้อย!', text: `ขอบคุณที่ร่วมทำแบบประเมินชุดที่ ${currentSet}`, icon: 'success' })
+            try {
+                await fetch(API_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "submit_score", phone: currentUser.phone, set_number: currentSet, score, time_used: timeUsed })
+                });
+                Swal.fire({ title: 'ส่งคำตอบเรียบร้อย!', text: `คุณได้คะแนน ${score} / ${questions.length} คะแนน ในชุดนี้`, icon: 'success' })
                 .then(() => fetchData());
-            }).catch(() => Swal.fire("ผิดพลาด", "การบันทึกคะแนนล้มเหลว", "error"));
+            } catch (err) {
+                Swal.fire("ผิดพลาด", "ส่งคะแนนไม่สำเร็จ", "error");
+            }
         }
 
         function openAdminLogin() {
@@ -419,11 +424,9 @@
             try {
                 await fetch(API_URL, {
                     method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ action: "toggle_quiz", password: "0000", set_number: setNum, is_open: openState })
                 });
-                setTimeout(fetchData, 600); // ดีเลย์เล็กน้อยเพื่อให้ชีตอัปเดตสถานะเสร็จก่อนโหลดซ้ำ
+                setTimeout(fetchData, 600); 
             } catch(err) {
                 console.error(err);
             }
@@ -448,16 +451,14 @@
 
             fetch(API_URL, {
                 method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ action: "login", phone, name, position: pos, department: dept })
-            }).then(() => {
+            }).then(res => res.json()).then(data => {
                 currentUser = { phone, name, position: pos, department: dept };
                 localStorage.setItem("nurse_exam_user", JSON.stringify(currentUser));
                 Swal.close();
                 checkLocalUser();
                 fetchData();
-            }).catch(() => Swal.fire("ผิดพลาด", "การเชื่อมต่อล้มเหลว", "error"));
+            }).catch(() => Swal.fire("ผิดพลาด", "การลงทะเบียนล้มเหลว", "error"));
         }
 
         function logout() {
