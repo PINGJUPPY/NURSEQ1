@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo: ระบบประเมินการอบรมออนไลน์ (โหมดจำลอง)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); min-height: 100vh; }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); }
+        .active-glow { animation: pulseGlow 2s infinite; border-color: #38bdf8; }
+        @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(56, 189, 248, 0); } 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); } }
+        .hidden-view { display: none !important; }
+        .circle-loader { width: 120px; height: 120px; border: 8px solid rgba(14, 165, 233, 0.1); border-left-color: #0ea5e9; border-radius: 50%; animation: spinCircle 1s linear infinite; }
+        @keyframes spinCircle { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* ป้ายประกาศ Demo Mode */
+        .demo-badge { background: #f43f5e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; animation: pulse 2s infinite; }
+    </style>
+</head>
+<body class="flex flex-col text-gray-800">
+
+    <header class="w-full p-4 glass-panel sticky top-0 z-50 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-rose-500 text-white rounded-xl shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 id="mainTitle" class="text-lg font-bold text-sky-800 leading-tight">NURSE-ED EVALUATION</h1>
+                    <span class="demo-badge">DEMO MODE</span>
+                </div>
+                <p id="subTitle" class="text-xs text-sky-600">ระบบคลังข้อสอบออนไลน์ (โหมดจำลองสำหรับอาจารย์)</p>
+            </div>
+        </div>
+        <div id="userInfo" class="text-right mt-2 pr-4">
+            <p id="userNameDisplay" class="text-sm font-bold text-rose-600">👤 สิทธิ์เข้าถึง: คณะกรรมการ/อาจารย์</p>
+            <button onclick="resetDemo()" class="text-xs text-gray-500 hover:text-sky-500 underline">↻ รีเซ็ตข้อมูลทดสอบใหม่ทั้งหมด</button>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8 relative">
+        
+        <div id="loaderView" class="hidden-view flex flex-col items-center justify-center h-96">
+            <div class="relative flex items-center justify-center">
+                <div class="circle-loader"></div>
+                <div id="loadPercentText" class="absolute text-2xl font-bold text-sky-600">0%</div>
+            </div>
+            <p class="text-sky-700 font-semibold mt-6 animate-pulse">กำลังซิงค์คลังข้อสอบให้คณะกรรมการประเมิน...</p>
+        </div>
+
+        <div id="dashboardView" class="hidden-view animate__animated animate__fadeIn">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">ศูนย์รวมชุดประเมินการอบรม (จำลอง)</h2>
+                    <p class="text-xs text-rose-500">ปลดล็อกข้อสอบทุกชุดแล้ว - คะแนนที่ทำในโหมดนี้จะไม่ถูกบันทึกลงฐานข้อมูลจริง</p>
+                </div>
+            </div>
+            <div id="quizGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-6"></div>
+        </div>
+
+        <div id="quizView" class="hidden-view max-w-3xl mx-auto animate__animated animate__fadeInRight">
+            <div class="glass-panel p-6 rounded-2xl mb-4 border-l-4 border-sky-500 sticky top-20 z-40 bg-white/95 shadow-lg">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 id="quizTitle" class="text-xl font-bold text-sky-800">แบบทดสอบ</h2>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500 font-semibold">เวลาที่ใช้</p>
+                        <p id="timerDisplay" class="text-lg font-mono font-bold text-red-500">00:00</p>
+                    </div>
+                </div>
+                <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-1">
+                    <div id="progressBar" class="bg-gradient-to-r from-sky-400 to-emerald-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <div class="flex justify-between text-xs font-bold text-sky-700">
+                    <span id="progressText">ความสำเร็จ: 0 / 0 ข้อ</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+            </div>
+            <div id="questionContainer" class="space-y-6 mb-8"></div>
+            <button onclick="submitQuiz()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-lg font-bold py-4 rounded-xl shadow-lg transition transform active:scale-95">ส่งคำตอบจำลอง (ไม่บันทึกจริง) ✅</button>
+        </div>
+
+    </main>
+
+    <footer class="text-center p-4 text-xs text-gray-400 bg-white/40 border-t border-sky-50/50 mt-auto">
+        © Platform Development พท.ทศพร คงสุขนิรันดร์ | โรงพยาบาลสะเดา
+    </footer>
+
+    <script>
+        // ลิงก์ API เดิมสำหรับดึงข้อสอบ (GET อย่างเดียว)
+        const API_URL = "https://script.google.com/macros/s/AKfycbwP_S-ABl42AFfSdOmQFX_rLHEMvK3hrBFbLgTvswP8SWuEAxQezOyotmoReN3r69N5Uw/exec";
+        
+        const QUIZ_NAMES = {
+            1: "แบบทดสอบการพยาบาลโรคหัวใจ",
+            2: "แบบทดสอบความรู้การดูแลบาดแผล",
+            3: "แบบทดสอบความรู้การพยาบาลกุมารเวชศาสตร์",
+            4: "แบบทดสอบการบริหารความเสี่ยงพยาบาลหอผู้ป่วยใน",
+            5: "แบบทดสอบจริยธรรมและกฎหมายงานผู้ป่วยนอก",
+            6: "แบบทดสอบพยาบาลวิชาชีพห้องทําแผลฉีดยาผู้ป่วยนอก",
+            7: "แบบทดสอบวิชาผดุงครรภ์",
+            8: "แบบทดสอบงานอุบัติเหตุฉุกเฉิน",
+            9: "แบบทดสอบจริยธรรมและกฎหมาย",
+            10: "แบบทดสอบการดูแลผู้ป่วยโรคไตของพยาบาลหอผู้ป่วยในรพช",
+            11: "แบบทดสอบพยาบาลวิชาชีพงานผู้ป่วยใน"
+        };
+
+        let allQuestions = [];
+        let myDemoScores = {}; 
+        
+        let currentSet = 0;
+        let startTime = 0;
+        let timerInterval;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // โหลดประวัติการลองทำข้อสอบจำลองจากเครื่องอาจารย์
+            const savedScores = localStorage.getItem("demo_nurse_scores");
+            if (savedScores) myDemoScores = JSON.parse(savedScores);
+
+            animateFakeLoader(0);
+        });
+
+        function animateFakeLoader(pct) {
+            if(pct <= 100) {
+                document.getElementById("loadPercentText").innerText = `${pct}%`;
+                setTimeout(() => animateFakeLoader(pct + 5), 15);
+            } else {
+                fetchData();
+            }
+        }
+
+        async function fetchData() {
+            showView("loaderView");
+            try {
+                // ดึงเฉพาะโจทย์ข้อสอบมาจาก Google Sheets
+                const antiCacheToken = `&_nocache=${new Date().getTime()}`;
+                let resQ = await fetch(`${API_URL}?action=get_questions${antiCacheToken}`);
+                let textQ = await resQ.text();
+                allQuestions = JSON.parse(textQ).data;
+
+                // ไปหน้า Dashboard ทันทีโดยไม่ต้องสนใจสถานะเปิดปิดจากวิทยากร
+                renderDashboard();
+            } catch (err) { 
+                console.error("Fetch Error:", err); 
+                Swal.fire("เชื่อมต่อล้มเหลว", "กรุณาตรวจสอบอินเทอร์เน็ต", "error");
+            }
+        }
+
+        function renderDashboard() {
+            const grid = document.getElementById("quizGrid");
+            grid.innerHTML = "";
+
+            for (let i = 1; i <= 11; i++) {
+                let localScore = myDemoScores[i]; 
+                let totalQ = allQuestions.filter(q => q.set_number === i).length;
+                let displayCount = totalQ === 0 ? "50" : totalQ;
+                let titleText = QUIZ_NAMES[i] || `ชุดข้อสอบประเมินที่ ${i}`;
+
+                let cardClass = "glass-panel p-5 rounded-2xl flex flex-col justify-between items-center text-center transition transform hover:-translate-y-2 hover:shadow-xl active-glow bg-white";
+                let icon = "📝"; 
+                let titleColor = "text-sky-800";
+                let btnHtml = "";
+
+                if (localScore !== undefined) { 
+                    cardClass = "glass-panel p-5 rounded-2xl flex flex-col justify-between items-center text-center transition transform opacity-90 border-green-200 bg-green-50/40 shadow-inner";
+                    icon = "✅"; titleColor = "text-green-700";
+                    btnHtml = `<div class="mt-4 text-sm font-bold text-green-700 bg-green-100 py-2.5 px-4 rounded-xl w-full select-none">จำลองคะแนน: ${localScore} / ${displayCount}</div>
+                               <button onclick="startQuiz(${i})" class="mt-2 text-[10px] text-sky-500 hover:underline">ลองทำใหม่อีกครั้ง</button>`;
+                } else {
+                    btnHtml = `<button onclick="startQuiz(${i})" class="mt-4 w-full bg-gradient-to-r from-sky-400 to-blue-500 text-white font-bold py-2 rounded-xl shadow transform active:scale-95 transition">คลิกดูข้อสอบ</button>`;
+                }
+
+                grid.innerHTML += `
+                    <div class="${cardClass}">
+                        <div class="flex flex-col items-center">
+                            <div class="text-4xl mb-2">${icon}</div>
+                            <span class="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-0.5 rounded-md mb-1">ชุดที่ ${i} (Demo)</span>
+                            <h3 class="font-bold ${titleColor} text-sm line-clamp-2 h-10 px-1 mb-1">${titleText}</h3>
+                            <p class="text-xs text-gray-400">จำนวนคำถาม ${displayCount} ข้อ</p>
+                        </div>
+                        <div class="w-full">${btnHtml}</div>
+                    </div>
+                `;
+            }
+            showView("dashboardView");
+        }
+
+        function startQuiz(setNum) {
+            currentSet = setNum;
+            const container = document.getElementById("questionContainer");
+            container.innerHTML = "";
+            
+            let titleText = QUIZ_NAMES[setNum] || `ชุดประเมินที่ ${setNum}`;
+            document.getElementById("quizTitle").innerText = titleText;
+
+            let questions = allQuestions.filter(q => q.set_number === setNum);
+            if(questions.length === 0) return Swal.fire("ขออภัย", "ระบบยังไม่พบโจทย์วิชานี้ในฐานข้อมูล", "warning");
+
+            updateProgressBar(0, questions.length);
+
+            questions.forEach((q, index) => {
+                let optionsHtml = q.choices.map((choice, cIndex) => {
+                    let letter = ['ก', 'ข', 'ค', 'ง'][cIndex];
+                    return `
+                    <label class="flex items-start p-3 bg-white border border-sky-100 rounded-xl cursor-pointer hover:bg-sky-50 transition mb-2 select-none">
+                        <input type="radio" name="q_${q.question_no}" value="${letter}" onchange="checkProgress(${questions.length})" class="mt-1 mr-3 w-4 h-4 text-sky-500">
+                        <span class="text-sm text-gray-700 leading-relaxed">${choice}</span>
+                    </label>`;
+                }).join('');
+
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border border-sky-100 shadow-sm animate__animated animate__fadeInUp" style="animation-delay: ${index * 0.02}s">
+                        <h4 class="font-bold text-gray-800 mb-3">${index + 1}. ${q.question_text}</h4>
+                        <div class="space-y-1">${optionsHtml}</div>
+                    </div>
+                `;
+            });
+
+            showView("quizView"); 
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function checkProgress(total) {
+            let answered = 0;
+            let currentQuestions = allQuestions.filter(q => q.set_number === currentSet);
+            currentQuestions.forEach(q => {
+                if(document.querySelector(`input[name="q_${q.question_no}"]:checked`)) answered++;
+            });
+            updateProgressBar(answered, total);
+        }
+
+        function updateProgressBar(answered, total) {
+            let percent = total > 0 ? Math.round((answered / total) * 100) : 0;
+            document.getElementById("progressBar").style.width = `${percent}%`;
+            document.getElementById("progressText").innerText = `ความสำเร็จ: ${answered} / ${total} ข้อ`;
+            document.getElementById("progressPercent").innerText = `${percent}%`;
+        }
+
+        function updateTimer() {
+            let diff = Math.floor((Date.now() - startTime) / 1000);
+            let min = Math.floor(diff / 60).toString().padStart(2, '0');
+            let sec = (diff % 60).toString().padStart(2, '0');
+            document.getElementById("timerDisplay").innerText = `${min}:${sec}`;
+        }
+
+        function submitQuiz() {
+            let questions = allQuestions.filter(q => q.set_number === currentSet);
+            let score = 0;
+            let answeredAll = true;
+
+            questions.forEach(q => {
+                let selected = document.querySelector(`input[name="q_${q.question_no}"]:checked`);
+                if (!selected) answeredAll = false;
+                else if (selected.value === q.answer) score++;
+            });
+
+            if (!answeredAll) {
+                // สำหรับอาจารย์ ถ้ากดดูเฉยๆ ไม่ได้ตอบ สามารถปล่อยผ่านได้ แต่แจ้งเตือนให้รู้
+                Swal.fire({
+                    title: 'ตอบไม่ครบทุกข้อ',
+                    text: 'ในโหมดจำลอง อาจารย์สามารถกดส่งได้เลยครับ ระบบจะคิดคะแนนตามข้อที่กา',
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'ส่งเลย',
+                    cancelButtonText: 'กลับไปทำต่อ'
+                }).then((result) => {
+                    if (result.isConfirmed) processFakeSubmit(score, questions.length);
+                });
+            } else {
+                processFakeSubmit(score, questions.length);
+            }
+        }
+
+        function processFakeSubmit(score, totalScore) {
+            clearInterval(timerInterval);
+            
+            Swal.fire({ title: 'กำลังตรวจคำตอบจำลอง...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            // จำลองการโหลดส่งข้อมูล 1 วินาที
+            setTimeout(() => {
+                // บันทึกคะแนนลงแค่ในเบราว์เซอร์ของอาจารย์ (ไม่ส่งเข้า Google Sheets)
+                myDemoScores[currentSet] = score;
+                localStorage.setItem("demo_nurse_scores", JSON.stringify(myDemoScores));
+
+                showView("dashboardView");
+                renderDashboard();
+                
+                Swal.fire({ 
+                    title: 'ส่งข้อสอบสำเร็จ (Demo)!', 
+                    text: `คะแนนจำลองที่ได้คือ ${score} / ${totalScore}\n(ไม่บันทึกลงฐานข้อมูลจริง)`, 
+                    icon: 'success' 
+                });
+            }, 1000);
+        }
+
+        function resetDemo() {
+            Swal.fire({
+                title: 'รีเซ็ตข้อมูลจำลอง?',
+                text: "คะแนนทดสอบที่อาจารย์กดเล่นไว้จะหายไปทั้งหมด",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'ใช่, รีเซ็ตเลย'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem("demo_nurse_scores");
+                    location.reload();
+                }
+            });
+        }
+
+        function showView(viewId) {
+            ['loaderView', 'dashboardView', 'quizView'].forEach(id => {
+                document.getElementById(id).classList.add("hidden-view");
+            });
+            document.getElementById(viewId).classList.remove("hidden-view");
+        }
+    </script>
+</body>
+</html>
