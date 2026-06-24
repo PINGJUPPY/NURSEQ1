@@ -68,12 +68,12 @@
         <div id="quizView" class="hidden-view max-w-3xl mx-auto animate__animated animate__fadeInRight">
             <div class="glass-panel p-6 rounded-2xl mb-4 border-l-4 border-sky-500 sticky top-20 z-40 bg-white/95 shadow-lg">
                 
-                <!-- 🌟 เพิ่มปุ่มกดกลับให้สำหรับอาจารย์ -->
-                <button onclick="goBackToDashboard()" class="flex items-center text-gray-400 hover:text-rose-500 font-bold text-sm mb-4 transition transform hover:-translate-x-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <!-- 🌟 ปรับปรุงปุ่มกลับให้มีพื้นหลังและขอบชัดเจนเหมือนปุ่มจริงๆ -->
+                <button onclick="goBackToDashboard()" class="flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-xl text-sm mb-4 transition transform hover:-translate-x-1 shadow-sm border border-gray-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    กลับสู่หน้ารวมข้อสอบ
+                    กลับไปเลือกวิชาอื่น
                 </button>
 
                 <div class="flex justify-between items-center mb-3">
@@ -229,12 +229,10 @@
             showView("quizView"); 
             startTime = Date.now();
             
-            // เคลียร์ Timer ตัวเก่าก่อนเริ่มตัวใหม่ ป้องกันบักเวลาเดินซ้อนกัน
             clearInterval(timerInterval);
             timerInterval = setInterval(updateTimer, 1000);
         }
 
-        // 🌟 ฟังก์ชันใหม่: สำหรับปุ่มกดกลับไปหน้าแรก (หยุดเวลาทันที)
         function goBackToDashboard() {
             clearInterval(timerInterval);
             showView("dashboardView");
